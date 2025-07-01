@@ -74,10 +74,10 @@ public class NodeServiceImpl implements NodeService {
             dto.setIdNode(node.getIdNode());
             dto.setName(node.getName());
             dto.setParentId(node.getParentId());
-            if(node.getParentId() == null) {
-                dto.setIsParent(false);
-            } else{
+            if(node.getIdNode().substring(0,3).equals("cha")) {
                 dto.setIsParent(true);
+            } else{
+                dto.setIsParent(false);
             }
             response.getNodes().add(dto);
         });
