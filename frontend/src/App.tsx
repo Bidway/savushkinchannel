@@ -9,9 +9,12 @@ import type {TreeProps} from "rc-tree";
 import DeviceParams from "./components/DeviceParams/DeviceParams.tsx";
 import type {DeviceParamsType} from "./types/nodeType.ts";
 import type {ContextMenuState} from "./types/ContextMenuState.ts";
+import {applyChangesParams} from "./utils/applyChangesParams.ts";
 
 function App() {
-  const [visibleTree, setVisibleTree] = useState<boolean>(true);
+  const [isDirty, setIsDirty] = useState(false);
+  const [visibleTree, setVisibleTree] = useState<boolean>(false);
+  const [visibleDeviceParams, setVisibleDeviceParams] = useState<boolean>(false);
   const [treeData, setTreeData] = useState<DataNode[]>([]);
   const [initialDeviceParams, setInitialDeviceParams] = useState<DeviceParamsType[]>([]);
   const [deviceParams, setDeviceParams] = useState<DeviceParamsType[]>([]);
@@ -21,9 +24,31 @@ function App() {
     y: 0,
     node: null
   });
+  const [selectedDeviceKey, setSelectedDeviceKey] = useState<string | null>(null);
 
-  const handleSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
+
+  const handleSelect: TreeProps['onSelect'] = async (selectedKeys) => {
+    const newKey = selectedKeys[0] as string;
+
+    if (!newKey || newKey === selectedDeviceKey) return;
+
+    if (isDirty) {
+      const confirm = window.confirm("Сохранить изменения?");
+      if (confirm) {
+        const form = document.querySelector<HTMLFormElement>('form.params');
+        if (form) {
+          await applyChangesParams(form, deviceParams, setIsDirty);
+        }
+        setSelectedDeviceKey(newKey);
+        setIsDirty(false);
+      } else {
+        setIsDirty(false);
+        setSelectedDeviceKey(newKey);
+      }
+    }
+
     setDeviceParams(initialDeviceParams.filter(param => param.parentKey === selectedKeys[0]));
+    setVisibleDeviceParams(true);
   };
 
   const handleRightClick = (info) => {
@@ -53,7 +78,7 @@ function App() {
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
             />
-              <DeviceParams deviceParams={deviceParams} />
+            {visibleDeviceParams && <DeviceParams isDirty={isDirty} setIsDirty={setIsDirty} deviceParams={deviceParams}/>}
           </MainLayout>}
     </>
   )
