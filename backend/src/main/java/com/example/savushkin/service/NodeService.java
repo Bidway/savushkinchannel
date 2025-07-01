@@ -9,5 +9,4 @@ public interface NodeService {
 
     void deleteNode(Long id);
     NodeResponse getFullHierarchy(String site, String project);
-    List<Node> getDevicesBySiteAndProject(String site, String project);
 }

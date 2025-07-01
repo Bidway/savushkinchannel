@@ -25,10 +25,6 @@ public class NodeServiceImpl implements NodeService {
         nodeRepository.deleteById(id);
     }
 
-    @Override
-    public List<Node> getDevicesBySiteAndProject(String site, String project) {
-        return nodeRepository.findDevicesBySiteAndProject(site, project);
-    }
 
     @Override
     public NodeResponse getFullHierarchy(String site, String project) {
@@ -60,9 +56,6 @@ public class NodeServiceImpl implements NodeService {
 
            response.getParams().add(dto);
         });
-//        allParams.stream().forEach(param -> response.getParams()
-//                .add(new ParamDTO(param.getIdType(),param.getNode().getIdNode(), param.getValue())));
-
 
         List<Node> nodes = new ArrayList<>();
         nodes.addAll(devices);
@@ -70,14 +63,13 @@ public class NodeServiceImpl implements NodeService {
         nodes.addAll(channels);
         nodes.forEach(node ->{
             NodeDTO dto = new NodeDTO();
-//            dto.setId(node.getId());
             dto.setIdNode(node.getIdNode());
             dto.setName(node.getName());
             dto.setParentId(node.getParentId());
-            if(node.getParentId() == null) {
-                dto.setIsParent(false);
-            } else{
+            if(node.getIdNode().substring(0,3).equals("cha")) {
                 dto.setIsParent(true);
+            } else{
+                dto.setIsParent(false);
             }
             response.getNodes().add(dto);
         });
