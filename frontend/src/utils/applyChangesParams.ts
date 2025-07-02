@@ -44,7 +44,7 @@ export const applyChangesParams = async (
   }
   console.log(patchPayload)
   try {
-    const response = await fetch('/api/device-params', {
+    const response = await fetch('http://localhost:8080/api/device-params', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
