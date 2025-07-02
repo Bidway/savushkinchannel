@@ -1,6 +1,7 @@
 package com.example.savushkin.controller;
 
 import com.example.savushkin.dto.KeyValue;
+import com.example.savushkin.dto.NodeDTO;
 import com.example.savushkin.dto.NodeResponse;
 import com.example.savushkin.service.NodeService;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +17,14 @@ public class NodeController {
     private final NodeService nodeService;
 
 
-    @DeleteMapping("/nodes/{id}")
-    public ResponseEntity<Void> deleteNode(@PathVariable Long id) {
-        nodeService.deleteNode(id);
+    @DeleteMapping("/devices/{idNode}")
+    public ResponseEntity<Void> deleteNode(@PathVariable String idNode) {
+        nodeService.deleteNodeByIdNode(idNode);
         return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/devices")
+    public ResponseEntity createNode(@RequestBody NodeDTO nodeDTO) {
+        return ResponseEntity.ok(nodeService.createNode(nodeDTO));
     }
 
     @PatchMapping("/device-params")

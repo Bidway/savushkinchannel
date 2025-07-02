@@ -8,6 +8,7 @@ import com.example.savushkin.repository.DescriptionRepository;
 import com.example.savushkin.repository.NodeRepository;
 import com.example.savushkin.repository.ParamRepository;
 import com.example.savushkin.service.NodeService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,25 @@ public class NodeServiceImpl implements NodeService {
     @Override
     public void deleteNode(Long id) {
         nodeRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteNodeByIdNode(String idNode) {
+        nodeRepository.deleteNodeByIdNode(idNode);
+    }
+
+    @Override
+    @Transactional
+    public String createNode(NodeDTO nodeDTO) {
+        Node node = new Node();
+        node.setIdNode("test");
+        node.setName(nodeDTO.getName());
+        node.setParentId(nodeDTO.getParentId());
+        Node savedNode = nodeRepository.save(node);
+        savedNode.setIdNode(nodeDTO.getIdNode().substring(0,3)+savedNode.getId());
+        nodeRepository.save(savedNode);
+        return savedNode.getIdNode();
     }
 
     @Override
