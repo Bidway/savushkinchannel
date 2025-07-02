@@ -25,9 +25,6 @@ public interface NodeRepository extends JpaRepository<Node, Long> {
     @Query(value = "SELECT n.* FROM node n WHERE n.parent_id IN :parentIds", nativeQuery = true)
     List<Node> findByParentIds(@Param("parentIds") List<String> parentIds);
 
-    @Query(value = "SELECT p.* FROM param p WHERE p.id_node IN :nodeIds", nativeQuery = true)
-    List<NodeParam> findParamsByNodeIds(@Param("nodeIds") List<String> nodeIds);
-
 
 }
 
