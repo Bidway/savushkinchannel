@@ -6,7 +6,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({children}) => {
   return (
-    <div>
+    <div className={"main-container"}>
       {children}
     </div>
   )

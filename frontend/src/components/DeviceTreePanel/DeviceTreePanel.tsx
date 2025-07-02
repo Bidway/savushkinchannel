@@ -1,142 +1,179 @@
-import {useEffect, useState} from 'react';
-import Tree from 'rc-tree';
-import type {DataNode, EventDataNode} from 'rc-tree/es/interface';
+import {useEffect, useMemo} from 'react';
+import Tree, {type TreeProps} from 'rc-tree';
+import type {DataNode} from 'rc-tree/es/interface';
 import 'rc-tree/assets/index.css';
-import {type DeviceNode, type DeviceParams, fetchDevices, fetchParams} from "../../utils/api.ts";
 import * as React from "react";
 import './DeviceTreePanel.scss';
+import type {DeviceNodeType} from "../../types/nodeType.ts";
+import type {ContextMenuState} from "../../types/ContextMenuState.ts";
+import {addNode, deleteNode} from "../../utils/treeApi.ts";
 
 
-interface MyNodeType {
-  key: string;
-  title: string;
-  children?: MyNodeType[];
-  isLeaf: boolean;
+interface DeviceTreePanelProps {
+  treeData: DeviceNodeType[];
+  handleSelect: TreeProps['onSelect'];
+  handleRightClick: TreeProps['onRightClick'];
+  contextMenu: ContextMenuState;
+  setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
+  setTreeData: React.Dispatch<React.SetStateAction<DataNode[]>>
 }
 
-const convertToDataNode = (nodes: DeviceNode[]): DataNode[] => {
-  return nodes.map((node) => ({
-    title: node.title,
-    key: node.key,
-    isLeaf: node.isLeaf,
-  }));
+const isSubtypeNode = (node: DataNode): boolean => {
+  // по ключу или названию — настраивай под себя
+  return typeof node.key === 'string' && node.key.startsWith('sub');
 };
 
 
-// Рекурсивно добавляет дочерние узлы
-const addChildrenToTree = (
-  tree: DataNode[],
-  key: string,
-  children: DataNode[]
-): DataNode[] => {
-  return tree.map((node) => {
-    if (node.key === key) {
-      return {...node, children};
-    } else if (node.children) {
-      return {...node, children: addChildrenToTree(node.children, key, children)};
-    }
-    return node;
-  });
-};
-
-const DeviceTreePanel = () => {
-  const [treeData, setTreeData] = useState<DataNode[]>([]);
-  const [deviceParams, setDeviceParams] = useState<DeviceParams[]>([]);
-
-  // Загрузка корневых узлов при первом рендере
-  useEffect(() => {
-    fetchDevices().then((data) => {
-      setTreeData(convertToDataNode(data));
-    });
-  }, []);
-
-  // Динамическая подгрузка дочерних узлов
-  const onLoadData = (treeNode: EventDataNode<MyNodeType>): Promise<void> => {
-    return new Promise((resolve) => {
-      if (treeNode.children) {
-        resolve();
-        return;
-      }
-
-      fetchDevices(treeNode.key).then((data) => {
-        const children = convertToDataNode(data);
-        setTreeData((prev) => addChildrenToTree(prev, treeNode.key as string, children));
-        resolve();
+const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu, setTreeData}) => {
+  const nestedTreeData = useMemo(() => {
+    const nodeMap = new Map<string, DataNode>();
+    treeData.forEach((node) => {
+      nodeMap.set(node.key, {
+        key: node.key,
+        title: node.title,
+        isLeaf: node.isLeaf,
+        children: [],
       });
     });
-  };
 
-  const selectedNodeHandler = (selectedKeys: React.Key[]) => {
-    const nodeKey = selectedKeys[0] as string;
-    fetchParams(nodeKey).then((data) => {
-      setDeviceParams(data);
+    const rootNodes: DataNode[] = [];
+
+    treeData.forEach((node) => {
+      if (node.parentKey) {
+        const parent = nodeMap.get(node.parentKey);
+        if (parent) {
+          (parent.children ||= []).push(nodeMap.get(node.key)!);
+        }
+      } else {
+        rootNodes.push(nodeMap.get(node.key)!);
+      }
     });
+
+    return rootNodes;
+  }, [treeData]);
+
+  // Закрытие контекстного меню при клике вне
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.visible) {
+        setContextMenu((prev) => ({ ...prev, visible: false }));
+      }
+    };
+
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, [contextMenu.visible]);
+
+  const handleMenuAction = async (action: string) => {
+    const targetNode = contextMenu.node;
+    switch (action) {
+      case 'Удалить': {
+        const nodeKey = targetNode?.key as string;
+        if (!nodeKey) break;
+
+        await deleteNode(nodeKey);
+
+        const deleteRecursively = (keyToDelete: string, nodes: DeviceNodeType[]): DeviceNodeType[] => {
+          const children = nodes.filter(n => n.parentKey === keyToDelete);
+          let remaining = nodes.filter(n => n.key !== keyToDelete);
+          for (const child of children) {
+            remaining = deleteRecursively(child.key, remaining);
+          }
+          return remaining;
+        };
+
+        setTreeData(prev => deleteRecursively(nodeKey.toString(), prev as DeviceNodeType[]));
+        break;
+      }
+      case 'Добавить подтип': {
+        const newName = prompt('Введите название подтипа:');
+
+        if (!newName) break;
+
+        const newKey = `sub-${Date.now()}`;
+
+        const newNode: DeviceNodeType = {
+          key: newKey,
+          title: newName,
+          isLeaf: false,
+          parentKey: targetNode?.key as string,
+        };
+
+        await addNode(newNode);
+        setTreeData(prev => [...prev, newNode]);
+        break;
+      }
+      case 'Добавить канал': {
+        const newName = prompt('Введите название канала:');
+        if (!newName) break;
+
+        const newKey = `cha-${Date.now()}`;
+
+        const newNode: DeviceNodeType = {
+          key: newKey,
+          title: newName,
+          isLeaf: true,
+          parentKey: targetNode?.key as string,
+        };
+
+        await addNode(newNode);
+        setTreeData(prev => [...prev, newNode]);
+        break;
+      }
+    }
+
+    setContextMenu((prev) => ({ ...prev, visible: false }));
   };
 
   return (
     <>
       <Tree
-        treeData={treeData}
-        loadData={onLoadData}
+        treeData={nestedTreeData}
         showLine={true}
         selectable
         defaultExpandAll={false}
-        onSelect={selectedNodeHandler}
+        onSelect={handleSelect}
+        onRightClick={handleRightClick}
       />
 
-      <div className={"params"} style={{marginTop: "20px"}}>
-        {deviceParams.map(param => {
-          switch (param.type) {
-            case 'input':
-              return (
-                <div key={param.key} className={"textarea__container"}>
-                  <label htmlFor={`input-${param.key}`}>{param.name}</label>
-                  <input
-                    id={`input-${param.key}`}
-                    name={`input-${param.key}`}
-                    key={param.key}
-                    type={"text"}
-                    defaultValue={param.value} />
-                </div>
-              )
-            case 'checkbox':
-              return (
-                <div key={param.key}>
-                  <input name={`input-${param.key}`} id={`input-${param.key}`} type="checkbox" defaultChecked={param.checked} />
-                  <label htmlFor={`input-${param.key}`}>{param.value}</label>
-                </div>
-              )
-            case 'textarea':
-              return (
-                <div key={param.key} className={"textarea__container"}>
-                  <label htmlFor={`textarea-${param.key}`}>{param.name}</label>
-                  <textarea
-                    name={`textarea-${param.key}`}
-                    id={`textarea-${param.key}`}
-                    defaultValue={param.value}
-                  >
-                  </textarea>
-                </div>
-              )
-            case 'select':
-              return (
-                <div key={param.key} className={"textarea__container"}>
-                  <label htmlFor={`select-${param.key}`}>{param.name}</label>
-                  <select
-                    name={`select-${param.key}`}
-                    id={`select-${param.key}`}
-                  >
-                    {(param.value as string[]).map((el, index) => (
-                      <option key={`option-${index}`} defaultValue={el}>{el}</option>
-                    ))}
-                  </select>
-                </div>
-              )
-            case 'span':
-              return <span key={param.key}>{param.value}</span>
-          }
-        })}
-      </div>
+      {/* Контекстное меню */}
+      {contextMenu.visible && contextMenu.node && (
+        <ul
+          style={{
+            position: 'absolute',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            listStyle: 'none',
+            background: 'white',
+            border: '1px solid #ccc',
+            borderRadius: 4,
+            padding: 4,
+            margin: 0,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 9999,
+            width: 180,
+          }}
+        >
+          {/* Удалить — всегда */}
+          <li onClick={() => handleMenuAction('Удалить')}>
+            🗑️ Удалить
+          </li>
+
+          {/* Добавить подтип — если node может иметь детей */}
+          {!contextMenu.node.isLeaf && !isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить подтип')}>
+              ➕ Добавить подтип
+            </li>
+          )}
+
+          {/* Добавить канал — если node это подтип */}
+          {isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить канал')}>
+              ➕ Добавить канал
+            </li>
+          )}
+        </ul>
+      )}
     </>
   );
 };

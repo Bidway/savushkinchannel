@@ -7,7 +7,7 @@ interface FormData {
   project: string;
 }
 
-const StartMenu = () => {
+const StartMenu = ({setTreeData, setInitialDeviceParams, setVisibleTree}) => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -16,7 +16,6 @@ const StartMenu = () => {
       site: form.site.value,
       project: form.projectInput.value
     };
-
     try {
       const response = await axios.get('http://localhost:8080/api/nodes/search', {
         params: {
@@ -25,10 +24,11 @@ const StartMenu = () => {
         }
       });
       console.log('Ответ сервера:', response.data);
-      // Здесь можно обработать ответ сервера
+      setTreeData(response.data.nodes);
+      setInitialDeviceParams(response.data.params);
+      setVisibleTree(true);
     } catch (error) {
       console.error('Ошибка при отправке запроса:', error);
-      // Здесь можно обработать ошибку
     }
   }
 
