@@ -12,7 +12,16 @@ interface DeviceParamsProps {
 
 const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIsDirty}) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, type, value, checked } = e.target;
+    const { name, type } = e.target;
+
+    let newValue: string | boolean;
+
+    if (type === 'checkbox') {
+      const target = e.target as HTMLInputElement;
+      newValue = target.checked;
+    } else {
+      newValue = e.target.value;
+    }
 
     const originalParam = deviceParams.find(param => {
       return (
@@ -23,13 +32,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
 
     if (!originalParam) return;
 
-    const originalValue =
-      originalParam.type === 'checkbox'
-        ? originalParam.checked
-        : originalParam.value;
-
-    const newValue =
-      type === 'checkbox' ? checked : value;
+    const originalValue = originalParam.value;
 
     if (newValue !== originalValue) {
       setIsDirty(true);
@@ -42,7 +45,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
   }
 
   return (
-    <form onSubmit={handleSubmit} className={"params"} style={{marginTop: "20px"}}>
+    <form onSubmit={handleSubmit} className={"params"}>
       {deviceParams.map(param => {
         switch (param.type) {
           case 'input':
@@ -66,7 +69,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
                   id={`input-${param.key}`}
                   type="checkbox"
                   onChange={handleChange}
-                  defaultChecked={param.checked}
+                  defaultChecked={Boolean(param.value)}
                 />
                 <label htmlFor={`input-${param.key}`}>{param.value}</label>
               </div>

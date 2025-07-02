@@ -6,6 +6,7 @@ import * as React from "react";
 import './DeviceTreePanel.scss';
 import type {DeviceNodeType} from "../../types/nodeType.ts";
 import type {ContextMenuState} from "../../types/ContextMenuState.ts";
+import {addNode, deleteNode} from "../../utils/treeApi.ts";
 
 
 interface DeviceTreePanelProps {
@@ -14,9 +15,16 @@ interface DeviceTreePanelProps {
   handleRightClick: TreeProps['onRightClick'];
   contextMenu: ContextMenuState;
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
+  setTreeData: React.Dispatch<React.SetStateAction<DataNode[]>>
 }
 
-const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu}) => {
+const isSubtypeNode = (node: DataNode): boolean => {
+  // по ключу или названию — настраивай под себя
+  return typeof node.key === 'string' && node.key.startsWith('sub');
+};
+
+
+const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu, setTreeData}) => {
   const nestedTreeData = useMemo(() => {
     const nodeMap = new Map<string, DataNode>();
     treeData.forEach((node) => {
@@ -56,8 +64,64 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
     return () => window.removeEventListener('click', handleClickOutside);
   }, [contextMenu.visible]);
 
-  const handleMenuAction = (action: string) => {
-    console.log(`Выбрано действие "${action}" для узла:`, contextMenu.node);
+  const handleMenuAction = async (action: string) => {
+    const targetNode = contextMenu.node;
+    switch (action) {
+      case 'Удалить': {
+        const nodeKey = targetNode?.key as string;
+        if (!nodeKey) break;
+
+        await deleteNode(nodeKey);
+
+        const deleteRecursively = (keyToDelete: string, nodes: DeviceNodeType[]): DeviceNodeType[] => {
+          const children = nodes.filter(n => n.parentKey === keyToDelete);
+          let remaining = nodes.filter(n => n.key !== keyToDelete);
+          for (const child of children) {
+            remaining = deleteRecursively(child.key, remaining);
+          }
+          return remaining;
+        };
+
+        setTreeData(prev => deleteRecursively(nodeKey.toString(), prev as DeviceNodeType[]));
+        break;
+      }
+      case 'Добавить подтип': {
+        const newName = prompt('Введите название подтипа:');
+
+        if (!newName) break;
+
+        const newKey = `sub-${Date.now()}`;
+
+        const newNode: DeviceNodeType = {
+          key: newKey,
+          title: newName,
+          isLeaf: false,
+          parentKey: targetNode?.key as string,
+        };
+
+        await addNode(newNode);
+        setTreeData(prev => [...prev, newNode]);
+        break;
+      }
+      case 'Добавить канал': {
+        const newName = prompt('Введите название канала:');
+        if (!newName) break;
+
+        const newKey = `cha-${Date.now()}`;
+
+        const newNode: DeviceNodeType = {
+          key: newKey,
+          title: newName,
+          isLeaf: true,
+          parentKey: targetNode?.key as string,
+        };
+
+        await addNode(newNode);
+        setTreeData(prev => [...prev, newNode]);
+        break;
+      }
+    }
+
     setContextMenu((prev) => ({ ...prev, visible: false }));
   };
 
@@ -67,47 +131,47 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
         treeData={nestedTreeData}
         showLine={true}
         selectable
-        defaultExpandAll
+        defaultExpandAll={false}
         onSelect={handleSelect}
         onRightClick={handleRightClick}
       />
 
       {/* Контекстное меню */}
-      {contextMenu.visible && (
+      {contextMenu.visible && contextMenu.node && (
         <ul
           style={{
             position: 'absolute',
             top: contextMenu.y,
             left: contextMenu.x,
             listStyle: 'none',
-            padding: '5px 0',
-            margin: 0,
             background: 'white',
             border: '1px solid #ccc',
             borderRadius: 4,
+            padding: 4,
+            margin: 0,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 1000,
-            width: 150,
+            zIndex: 9999,
+            width: 180,
           }}
         >
-          <li
-            onClick={() => handleMenuAction('Просмотр')}
-            style={{ padding: '6px 12px', cursor: 'pointer' }}
-          >
-            🔍 Просмотр
-          </li>
-          <li
-            onClick={() => handleMenuAction('Редактировать')}
-            style={{ padding: '6px 12px', cursor: 'pointer' }}
-          >
-            ✏️ Редактировать
-          </li>
-          <li
-            onClick={() => handleMenuAction('Удалить')}
-            style={{ padding: '6px 12px', cursor: 'pointer', color: 'red' }}
-          >
+          {/* Удалить — всегда */}
+          <li onClick={() => handleMenuAction('Удалить')}>
             🗑️ Удалить
           </li>
+
+          {/* Добавить подтип — если node может иметь детей */}
+          {!contextMenu.node.isLeaf && !isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить подтип')}>
+              ➕ Добавить подтип
+            </li>
+          )}
+
+          {/* Добавить канал — если node это подтип */}
+          {isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить канал')}>
+              ➕ Добавить канал
+            </li>
+          )}
         </ul>
       )}
     </>

@@ -7,7 +7,7 @@ import type {DataNode} from 'rc-tree/es/interface';
 import {useState} from "react";
 import type {TreeProps} from "rc-tree";
 import DeviceParams from "./components/DeviceParams/DeviceParams.tsx";
-import type {DeviceParamsType} from "./types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsType} from "./types/nodeType.ts";
 import type {ContextMenuState} from "./types/ContextMenuState.ts";
 import {applyChangesParams} from "./utils/applyChangesParams.ts";
 
@@ -15,17 +15,16 @@ function App() {
   const [isDirty, setIsDirty] = useState(false);
   const [visibleTree, setVisibleTree] = useState<boolean>(false);
   const [visibleDeviceParams, setVisibleDeviceParams] = useState<boolean>(false);
-  const [treeData, setTreeData] = useState<DataNode[]>([]);
+  const [treeData, setTreeData] = useState<DeviceNodeType[]>([]);
   const [initialDeviceParams, setInitialDeviceParams] = useState<DeviceParamsType[]>([]);
   const [deviceParams, setDeviceParams] = useState<DeviceParamsType[]>([]);
+  const [selectedDeviceKey, setSelectedDeviceKey] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
     visible: false,
     x: 0,
     y: 0,
     node: null
   });
-  const [selectedDeviceKey, setSelectedDeviceKey] = useState<string | null>(null);
-
 
   const handleSelect: TreeProps['onSelect'] = async (selectedKeys) => {
     const newKey = selectedKeys[0] as string;
@@ -59,7 +58,7 @@ function App() {
       node: info.node,
     });
   }
-
+  console.log(contextMenu)
   return (
     <>
       <HeaderBar />
@@ -77,8 +76,14 @@ function App() {
                 handleRightClick={handleRightClick}
                 contextMenu={contextMenu}
                 setContextMenu={setContextMenu}
+                setTreeData={setTreeData}
             />
-            {visibleDeviceParams && <DeviceParams isDirty={isDirty} setIsDirty={setIsDirty} deviceParams={deviceParams}/>}
+            {visibleDeviceParams &&
+                <DeviceParams
+                  isDirty={isDirty}
+                  setIsDirty={setIsDirty}
+                  deviceParams={deviceParams}
+                />}
           </MainLayout>}
     </>
   )
