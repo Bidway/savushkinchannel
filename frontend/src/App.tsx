@@ -3,13 +3,14 @@ import DeviceTreePanel from "./components/DeviceTreePanel/DeviceTreePanel.tsx";
 import MainLayout from "./layout/MainLayout/MainLayout.tsx";
 import HeaderBar from "./components/HeaderBar/HeaderBar.tsx";
 import StartMenu from "./components/StartMenu/StartMenu.tsx";
-import type {DataNode} from 'rc-tree/es/interface';
 import {useState} from "react";
 import type {TreeProps} from "rc-tree";
 import DeviceParams from "./components/DeviceParams/DeviceParams.tsx";
 import type {DeviceNodeType, DeviceParamsType} from "./types/nodeType.ts";
 import type {ContextMenuState} from "./types/ContextMenuState.ts";
 import {applyChangesParams} from "./utils/applyChangesParams.ts";
+import type {EventDataNode} from 'rc-tree/lib/interface';
+import type {DataNode} from "rc-tree/es/interface";
 
 function App() {
   const [isDirty, setIsDirty] = useState(false);
@@ -50,15 +51,18 @@ function App() {
     setVisibleDeviceParams(true);
   };
 
-  const handleRightClick = (info) => {
+  const handleRightClick = (info: {
+    event: React.MouseEvent;
+    node: EventDataNode<DataNode>;
+  }) => {
     setContextMenu({
       visible: true,
       x: info.event.clientX,
       y: info.event.clientY,
       node: info.node,
     });
-  }
-  console.log(contextMenu)
+  };
+
   return (
     <>
       <HeaderBar />

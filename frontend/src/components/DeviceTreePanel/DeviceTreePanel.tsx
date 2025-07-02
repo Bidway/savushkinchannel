@@ -7,20 +7,21 @@ import './DeviceTreePanel.scss';
 import type {DeviceNodeType} from "../../types/nodeType.ts";
 import type {ContextMenuState} from "../../types/ContextMenuState.ts";
 import {addNode, deleteNode} from "../../utils/treeApi.ts";
+import type {EventDataNode} from "rc-tree/lib/interface";
 
 
 interface DeviceTreePanelProps {
   treeData: DeviceNodeType[];
   handleSelect: TreeProps['onSelect'];
-  handleRightClick: TreeProps['onRightClick'];
+  handleRightClick: (info: { event: React.MouseEvent; node: EventDataNode<DataNode> }) => void;
   contextMenu: ContextMenuState;
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
-  setTreeData: React.Dispatch<React.SetStateAction<DataNode[]>>
+  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>
 }
 
-const isSubtypeNode = (node: DataNode): boolean => {
+const isSubtypeNode = (node: DeviceNodeType): boolean => {
   // по ключу или названию — настраивай под себя
-  return typeof node.key === 'string' && node.key.startsWith('sub');
+  return node.key.startsWith('sub');
 };
 
 
