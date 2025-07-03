@@ -6,8 +6,8 @@ import * as React from "react";
 import './DeviceTreePanel.scss';
 import type {DeviceNodeType} from "../../types/nodeType.ts";
 import type {ContextMenuState} from "../../types/ContextMenuState.ts";
-import {addNode, deleteNode} from "../../utils/treeApi.ts";
 import type {EventDataNode} from "rc-tree/lib/interface";
+import {handleMenuAction} from "../../utils/handleMenuAction.ts";
 
 
 interface DeviceTreePanelProps {
@@ -65,66 +65,6 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
     return () => window.removeEventListener('click', handleClickOutside);
   }, [contextMenu.visible]);
 
-  const handleMenuAction = async (action: string) => {
-    const targetNode = contextMenu.node;
-    switch (action) {
-      case 'Удалить': {
-        const nodeKey = targetNode?.key as string;
-        if (!nodeKey) break;
-
-        await deleteNode(nodeKey);
-
-        const deleteRecursively = (keyToDelete: string, nodes: DeviceNodeType[]): DeviceNodeType[] => {
-          const children = nodes.filter(n => n.parentKey === keyToDelete);
-          let remaining = nodes.filter(n => n.key !== keyToDelete);
-          for (const child of children) {
-            remaining = deleteRecursively(child.key, remaining);
-          }
-          return remaining;
-        };
-
-        setTreeData(prev => deleteRecursively(nodeKey.toString(), prev as DeviceNodeType[]));
-        break;
-      }
-      case 'Добавить подтип': {
-        const newName = prompt('Введите название подтипа:');
-
-        if (!newName) break;
-
-        const newKey = `sub-${Date.now()}`;
-
-        const newNode: DeviceNodeType = {
-          key: newKey,
-          title: newName,
-          isLeaf: false,
-          parentKey: targetNode?.key as string,
-        };
-
-        await addNode(newNode);
-        setTreeData(prev => [...prev, newNode]);
-        break;
-      }
-      case 'Добавить канал': {
-        const newName = prompt('Введите название канала:');
-        if (!newName) break;
-
-        const newKey = `cha-${Date.now()}`;
-
-        const newNode: DeviceNodeType = {
-          key: newKey,
-          title: newName,
-          isLeaf: true,
-          parentKey: targetNode?.key as string,
-        };
-
-        await addNode(newNode);
-        setTreeData(prev => [...prev, newNode]);
-        break;
-      }
-    }
-
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  };
 
   return (
     <>
@@ -156,20 +96,20 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
           }}
         >
           {/* Удалить — всегда */}
-          <li onClick={() => handleMenuAction('Удалить')}>
+          <li onClick={() => handleMenuAction('Удалить', contextMenu, setContextMenu, setTreeData)}>
             🗑️ Удалить
           </li>
 
           {/* Добавить подтип — если node может иметь детей */}
           {!contextMenu.node.isLeaf && !isSubtypeNode(contextMenu.node) && (
-            <li onClick={() => handleMenuAction('Добавить подтип')}>
+            <li onClick={() => handleMenuAction('Добавить подтип', contextMenu, setContextMenu, setTreeData)}>
               ➕ Добавить подтип
             </li>
           )}
 
           {/* Добавить канал — если node это подтип */}
           {isSubtypeNode(contextMenu.node) && (
-            <li onClick={() => handleMenuAction('Добавить канал')}>
+            <li onClick={() => handleMenuAction('Добавить канал', contextMenu, setContextMenu, setTreeData)}>
               ➕ Добавить канал
             </li>
           )}
