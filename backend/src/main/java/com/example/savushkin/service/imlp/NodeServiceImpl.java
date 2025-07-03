@@ -40,12 +40,12 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    @Transactional
     public NodeDTO createNode(CreateNodeDTO createNodeDTO) {
-        validateNodeType(createNodeDTO.getNodeType());
+        validateNodeType(createNodeDTO.getType());
 
         Node node = new Node();
-        node.setNodeType(createNodeDTO.getNodeType());
+        node.setNodeType(createNodeDTO.getType());
+        node.setIdNode("null");
         node.setName(createNodeDTO.getName());
         node.setParentId(createNodeDTO.getParentId());
 
@@ -56,21 +56,27 @@ public class NodeServiceImpl implements NodeService {
         savedNode.updateIdNode();
 
         // 3. Явное обновление в БД
-        entityManager.flush();
-        entityManager.refresh(savedNode);
-
-        return convertToDto(savedNode);
+//        entityManager.flush();
+//        entityManager.refresh(savedNode);
+        boolean isParent;
+        if(createNodeDTO.getType().equals("cha"))
+        {
+            isParent = true;
+        }else {
+            isParent = false;
+        }
+        return convertToDto(savedNode, isParent);
     }
     private void validateNodeType(String type) {
         if (!List.of("dev", "sub", "cha").contains(type)) {
             throw new IllegalArgumentException("Node type must be 'dev', 'sub' or 'cha'");
         }
     }
-    private NodeDTO convertToDto(Node node) {
+    private NodeDTO convertToDto(Node node, Boolean isParent) {
         NodeDTO dto = new NodeDTO();
         dto.setIdNode(node.getIdNode());
         dto.setName(node.getName());
-        dto.setIsParent(false);
+        dto.setIsParent(isParent);
         dto.setParentId(node.getParentId());
         return dto;
     }
