@@ -1,5 +1,6 @@
 package com.example.savushkin.service;
 
+import com.example.savushkin.dto.CreateNodeDTO;
 import com.example.savushkin.dto.KeyValue;
 import com.example.savushkin.dto.NodeDTO;
 import com.example.savushkin.dto.NodeResponse;
@@ -12,7 +13,7 @@ public interface NodeService {
 
     void deleteNode(Long id);
     void deleteNodeByIdNode(String idNode);
-    String createNode(NodeDTO nodeDTO);
+    NodeDTO createNode(CreateNodeDTO createNodeDTO);
     ResponseEntity<Void> updateNode(List<KeyValue> keyValues);
     NodeResponse getFullHierarchy(String site, String project);
 }

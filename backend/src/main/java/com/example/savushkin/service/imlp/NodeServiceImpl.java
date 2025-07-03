@@ -8,6 +8,7 @@ import com.example.savushkin.repository.DescriptionRepository;
 import com.example.savushkin.repository.NodeRepository;
 import com.example.savushkin.repository.ParamRepository;
 import com.example.savushkin.service.NodeService;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class NodeServiceImpl implements NodeService {
     private final NodeRepository nodeRepository;
     private final DescriptionRepository descriptionRepository;
     private final ParamRepository paramRepository;
+    private final EntityManager entityManager;
 
     @Override
     public void deleteNode(Long id) {
@@ -39,15 +41,38 @@ public class NodeServiceImpl implements NodeService {
 
     @Override
     @Transactional
-    public String createNode(NodeDTO nodeDTO) {
+    public NodeDTO createNode(CreateNodeDTO createNodeDTO) {
+        validateNodeType(createNodeDTO.getNodeType());
+
         Node node = new Node();
-        node.setIdNode("test");
-        node.setName(nodeDTO.getName());
-        node.setParentId(nodeDTO.getParentId());
+        node.setNodeType(createNodeDTO.getNodeType());
+        node.setName(createNodeDTO.getName());
+        node.setParentId(createNodeDTO.getParentId());
+
+        // 1. Сохраняем, чтобы получить ID
         Node savedNode = nodeRepository.save(node);
-        savedNode.setIdNode(nodeDTO.getIdNode().substring(0,3)+savedNode.getId());
-        nodeRepository.save(savedNode);
-        return savedNode.getIdNode();
+
+        // 2. Генерируем idNode (вызовет @PostPersist)
+        savedNode.updateIdNode();
+
+        // 3. Явное обновление в БД
+        entityManager.flush();
+        entityManager.refresh(savedNode);
+
+        return convertToDto(savedNode);
+    }
+    private void validateNodeType(String type) {
+        if (!List.of("dev", "sub", "cha").contains(type)) {
+            throw new IllegalArgumentException("Node type must be 'dev', 'sub' or 'cha'");
+        }
+    }
+    private NodeDTO convertToDto(Node node) {
+        NodeDTO dto = new NodeDTO();
+        dto.setIdNode(node.getIdNode());
+        dto.setName(node.getName());
+        dto.setIsParent(false);
+        dto.setParentId(node.getParentId());
+        return dto;
     }
 
     @Override

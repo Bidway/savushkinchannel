@@ -1,0 +1,16 @@
+package com.example.savushkin.dto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+@Data
+public class CreateNodeDTO {
+    @JsonProperty("key")
+    private String nodeType;
+    @JsonProperty("title")
+    private String name;
+    @JsonProperty("isLeaf")
+    private Boolean isParent;
+    @JsonProperty("parentKey")
+    private String parentId;
+}

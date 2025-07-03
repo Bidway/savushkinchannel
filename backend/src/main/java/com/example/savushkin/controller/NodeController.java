@@ -1,5 +1,6 @@
 package com.example.savushkin.controller;
 
+import com.example.savushkin.dto.CreateNodeDTO;
 import com.example.savushkin.dto.KeyValue;
 import com.example.savushkin.dto.NodeDTO;
 import com.example.savushkin.dto.NodeResponse;
@@ -23,8 +24,9 @@ public class NodeController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/devices")
-    public ResponseEntity createNode(@RequestBody NodeDTO nodeDTO) {
-        return ResponseEntity.ok(nodeService.createNode(nodeDTO));
+    public ResponseEntity<NodeDTO> createNode(@RequestBody CreateNodeDTO createNodeDTO) {
+        NodeDTO nodeDTO = nodeService.createNode(createNodeDTO);
+        return ResponseEntity.ok(nodeDTO);
     }
 
     @PatchMapping("/device-params")
