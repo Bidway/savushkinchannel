@@ -6,17 +6,26 @@ import * as React from "react";
 import './DeviceTreePanel.scss';
 import type {DeviceNodeType} from "../../types/nodeType.ts";
 import type {ContextMenuState} from "../../types/ContextMenuState.ts";
+import type {EventDataNode} from "rc-tree/lib/interface";
+import {handleMenuAction} from "../../utils/handleMenuAction.ts";
 
 
 interface DeviceTreePanelProps {
   treeData: DeviceNodeType[];
   handleSelect: TreeProps['onSelect'];
-  handleRightClick: TreeProps['onRightClick'];
+  handleRightClick: (info: { event: React.MouseEvent; node: EventDataNode<DataNode> }) => void;
   contextMenu: ContextMenuState;
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
+  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>
 }
 
-const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu}) => {
+const isSubtypeNode = (node: DeviceNodeType): boolean => {
+  // по ключу или названию — настраивай под себя
+  return node.key.startsWith('sub');
+};
+
+
+const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu, setTreeData}) => {
   const nestedTreeData = useMemo(() => {
     const nodeMap = new Map<string, DataNode>();
     treeData.forEach((node) => {
@@ -56,10 +65,6 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
     return () => window.removeEventListener('click', handleClickOutside);
   }, [contextMenu.visible]);
 
-  const handleMenuAction = (action: string) => {
-    console.log(`Выбрано действие "${action}" для узла:`, contextMenu.node);
-    setContextMenu((prev) => ({ ...prev, visible: false }));
-  };
 
   return (
     <>
@@ -67,47 +72,47 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
         treeData={nestedTreeData}
         showLine={true}
         selectable
-        defaultExpandAll
+        defaultExpandAll={false}
         onSelect={handleSelect}
         onRightClick={handleRightClick}
       />
 
       {/* Контекстное меню */}
-      {contextMenu.visible && (
+      {contextMenu.visible && contextMenu.node && (
         <ul
           style={{
             position: 'absolute',
             top: contextMenu.y,
             left: contextMenu.x,
             listStyle: 'none',
-            padding: '5px 0',
-            margin: 0,
             background: 'white',
             border: '1px solid #ccc',
             borderRadius: 4,
+            padding: 4,
+            margin: 0,
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 1000,
-            width: 150,
+            zIndex: 9999,
+            width: 180,
           }}
         >
-          <li
-            onClick={() => handleMenuAction('Просмотр')}
-            style={{ padding: '6px 12px', cursor: 'pointer' }}
-          >
-            🔍 Просмотр
-          </li>
-          <li
-            onClick={() => handleMenuAction('Редактировать')}
-            style={{ padding: '6px 12px', cursor: 'pointer' }}
-          >
-            ✏️ Редактировать
-          </li>
-          <li
-            onClick={() => handleMenuAction('Удалить')}
-            style={{ padding: '6px 12px', cursor: 'pointer', color: 'red' }}
-          >
+          {/* Удалить — всегда */}
+          <li onClick={() => handleMenuAction('Удалить', contextMenu, setContextMenu, setTreeData)}>
             🗑️ Удалить
           </li>
+
+          {/* Добавить подтип — если node может иметь детей */}
+          {!contextMenu.node.isLeaf && !isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить подтип', contextMenu, setContextMenu, setTreeData)}>
+              ➕ Добавить подтип
+            </li>
+          )}
+
+          {/* Добавить канал — если node это подтип */}
+          {isSubtypeNode(contextMenu.node) && (
+            <li onClick={() => handleMenuAction('Добавить канал', contextMenu, setContextMenu, setTreeData)}>
+              ➕ Добавить канал
+            </li>
+          )}
         </ul>
       )}
     </>

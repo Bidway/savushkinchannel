@@ -13,10 +13,9 @@ export type DeviceNodeType = {
 };
 
 export type DeviceParamsType = {
-  key: number | string;
+  key: string;
   parentKey: string;
   name: string;
   type: string;
-  value?: string | string[];
-  checked?: boolean;
+  value: string;
 }

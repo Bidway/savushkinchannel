@@ -1,4 +1,3 @@
-import type {DeviceNode} from "./api.ts";
 import type {DataNode} from "rc-tree/es/interface";
 
 export const convertToDataNode = (nodes: DeviceNode[]): DataNode[] => {
