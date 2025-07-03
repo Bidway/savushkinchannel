@@ -33,6 +33,7 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       if (!newName) break;
 
       const tempNode = {
+        type: "sub",
         title: newName,
         isLeaf: false,
         parentKey: targetNode?.key as string,
@@ -52,6 +53,7 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       if (!newName) break;
 
       const newNode = {
+        type: "cha",
         title: newName,
         isLeaf: true,
         parentKey: targetNode?.key as string,
