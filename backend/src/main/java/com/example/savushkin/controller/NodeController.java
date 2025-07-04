@@ -1,9 +1,6 @@
 package com.example.savushkin.controller;
 
-import com.example.savushkin.dto.CreateNodeDTO;
-import com.example.savushkin.dto.KeyValue;
-import com.example.savushkin.dto.NodeDTO;
-import com.example.savushkin.dto.NodeResponse;
+import com.example.savushkin.dto.*;
 import com.example.savushkin.service.NodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +21,9 @@ public class NodeController {
         return ResponseEntity.noContent().build();
     }
     @PostMapping("/devices")
-    public ResponseEntity<NodeDTO> createNode(@RequestBody CreateNodeDTO createNodeDTO) {
-        NodeDTO nodeDTO = nodeService.createNode(createNodeDTO);
-        return ResponseEntity.ok(nodeDTO);
+    public ResponseEntity<CreateNodeResponse> createNode(@RequestBody CreateNodeDTO createNodeDTO) {
+        CreateNodeResponse response = nodeService.createNode(createNodeDTO);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/device-params")

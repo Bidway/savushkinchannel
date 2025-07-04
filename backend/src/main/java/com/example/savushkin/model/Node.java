@@ -29,9 +29,10 @@ public class Node {
     @Column(name = "parent_id")
     private String parentId;
 
-    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore // Полностью исключаем из JSON
-    private List<NodeParam> nodeParams = new ArrayList<>();
+//
+//    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonIgnore // Полностью исключаем из JSON
+//    private List<NodeParam> nodeParams = new ArrayList<>();
 
     @PrePersist
     public void generateIdNode() {

@@ -1,9 +1,6 @@
 package com.example.savushkin.service;
 
-import com.example.savushkin.dto.CreateNodeDTO;
-import com.example.savushkin.dto.KeyValue;
-import com.example.savushkin.dto.NodeDTO;
-import com.example.savushkin.dto.NodeResponse;
+import com.example.savushkin.dto.*;
 import com.example.savushkin.model.Node;
 import org.springframework.http.ResponseEntity;
 
@@ -13,7 +10,7 @@ public interface NodeService {
 
     void deleteNode(Long id);
     void deleteNodeByIdNode(String idNode);
-    NodeDTO createNode(CreateNodeDTO createNodeDTO);
+    CreateNodeResponse createNode(CreateNodeDTO createNodeDTO);
     ResponseEntity<Void> updateNode(List<KeyValue> keyValues);
     NodeResponse getFullHierarchy(String site, String project);
 }

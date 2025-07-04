@@ -1,6 +1,8 @@
 package com.example.savushkin.service.imlp;
 
+import com.example.savushkin.config.NodeTemplates;
 import com.example.savushkin.dto.*;
+import com.example.savushkin.exception.NotFoundException;
 import com.example.savushkin.model.Description;
 import com.example.savushkin.model.Node;
 import com.example.savushkin.model.NodeParam;
@@ -40,33 +42,47 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public NodeDTO createNode(CreateNodeDTO createNodeDTO) {
+    public CreateNodeResponse createNode(CreateNodeDTO createNodeDTO) {
+        CreateNodeResponse response = new CreateNodeResponse();
         validateNodeType(createNodeDTO.getType());
+
+
 
         Node node = new Node();
         node.setNodeType(createNodeDTO.getType());
-        node.setIdNode("null");
+        node.setIdNode("temp");
         node.setName(createNodeDTO.getName());
         node.setParentId(createNodeDTO.getParentId());
 
-        // 1. Сохраняем, чтобы получить ID
         Node savedNode = nodeRepository.save(node);
-
-        // 2. Генерируем idNode (вызовет @PostPersist)
         savedNode.updateIdNode();
+        boolean isParent = "cha".equals(createNodeDTO.getType());
+        response.setNodeDTO(convertToDto(savedNode, isParent));
 
-        // 3. Явное обновление в БД
-//        entityManager.flush();
-//        entityManager.refresh(savedNode);
-        boolean isParent;
-        if(createNodeDTO.getType().equals("cha"))
-        {
-            isParent = true;
-        }else {
-            isParent = false;
+        List<Long> paramIds = NodeTemplates.getTemplateParams(createNodeDTO.getType());
+        List<Description> descriptions = descriptionRepository.findAll();
+        if (paramIds != null) {
+            for (Long paramId : paramIds) {
+                NodeParam nodeParam = new NodeParam();
+                nodeParam.setIdType(paramId);
+                nodeParam.setNode(savedNode);
+                nodeParam.setValue("");
+                NodeParam savedParam = paramRepository.save(nodeParam);
+
+                ParamDTO dto = new ParamDTO();
+                dto.setId(savedParam.getId());
+                dto.setIdNode(savedParam.getNode().getIdNode());
+                dto.setName(descriptions.get(savedParam.getIdType().intValue()-1).getName());
+                dto.setType(descriptions.get(savedParam.getIdType().intValue()-1).getType());
+                dto.setValue(savedParam.getValue());
+
+                response.getParams().add(dto);
+            }
         }
-        return convertToDto(savedNode, isParent);
+
+        return response;
     }
+
     private void validateNodeType(String type) {
         if (!List.of("dev", "sub", "cha").contains(type)) {
             throw new IllegalArgumentException("Node type must be 'dev', 'sub' or 'cha'");
@@ -134,8 +150,8 @@ public class NodeServiceImpl implements NodeService {
            ParamDTO dto = new ParamDTO();
            dto.setId(param.getId());
            dto.setIdNode(param.getNode().getIdNode());
-           dto.setName(descriptions.get(param.getIdType().intValue()).getName());
-           dto.setType(descriptions.get(param.getIdType().intValue()).getType());
+           dto.setName(descriptions.get(param.getIdType().intValue()-1).getName());
+           dto.setType(descriptions.get(param.getIdType().intValue()-1).getType());
            dto.setValue(param.getValue());
 
            response.getParams().add(dto);
