@@ -13,8 +13,8 @@ export const addNode = async (node: DeviceNodeType): Promise<void> => {
     throw new Error(`Ошибка добавления узла: ${response.statusText}`);
   }
 
-  const createdNode = await response.json();
-  return createdNode as DeviceNodeType;
+  const data = await response.json();
+  return data;
 };
 
 // Удаление узла и его потомков
@@ -27,5 +27,7 @@ export const deleteNode = async (key: string): Promise<void> => {
     throw new Error('Ошибка при удалении узла');
   }
 };
+
+
 
 

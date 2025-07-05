@@ -1,7 +1,13 @@
 import {addNode, deleteNode} from "./treeApi.ts";
 import type {DeviceNodeType} from "../types/nodeType.ts";
 
-export const handleMenuAction = async (action: string, contextMenu, setContextMenu, setTreeData) => {
+export const handleMenuAction = async (
+  action: string,
+  contextMenu,
+  setContextMenu,
+  setTreeData,
+  setInitialDeviceParams
+) => {
   const targetNode = contextMenu.node;
   switch (action) {
     case 'Удалить': {
@@ -40,8 +46,9 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       };
 
       try {
-        const savedNode = await addNode(tempNode);
-        setTreeData(prev => [...prev, savedNode]);
+        const {nodeDTO, params} = await addNode(tempNode);
+        setTreeData(prev => [...prev, nodeDTO]);
+        setInitialDeviceParams(prev => [...prev, ...params]);
       } catch (error) {
         console.error('Ошибка при добавлении:', error);
         alert('Не удалось добавить узел. Попробуйте ещё раз.');
@@ -52,7 +59,7 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       const newName = prompt('Введите название канала:');
       if (!newName) break;
 
-      const newNode = {
+      const tempNode = {
         type: "cha",
         title: newName,
         isLeaf: true,
@@ -60,8 +67,9 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       };
 
      try {
-       const savedNode = await addNode(newNode);
-       setTreeData(prev => [...prev, savedNode]);
+       const {nodeDTO, params} = await addNode(tempNode);
+       setTreeData(prev => [...prev, nodeDTO]);
+       setInitialDeviceParams(prev => [...prev, ...params]);
      } catch (error) {
        console.error('Ошибка при добавлении:', error);
        alert('Не удалось добавить узел. Попробуйте ещё раз.');

@@ -37,16 +37,14 @@ function App() {
       if (confirm) {
         const form = document.querySelector<HTMLFormElement>('form.params');
         if (form) {
-          await applyChangesParams(form, deviceParams, setIsDirty);
+          await applyChangesParams(form, deviceParams, setIsDirty, setInitialDeviceParams);
         }
-        setSelectedDeviceKey(newKey);
         setIsDirty(false);
       } else {
         setIsDirty(false);
-        setSelectedDeviceKey(newKey);
       }
     }
-
+    setSelectedDeviceKey(newKey);
     setDeviceParams(initialDeviceParams.filter(param => param.parentKey === selectedKeys[0]));
     setVisibleDeviceParams(true);
   };
@@ -75,6 +73,7 @@ function App() {
       {visibleTree &&
           <MainLayout>
             <DeviceTreePanel
+                setInitialDeviceParams={setInitialDeviceParams}
                 treeData={treeData}
                 handleSelect={handleSelect}
                 handleRightClick={handleRightClick}
@@ -87,7 +86,10 @@ function App() {
                   isDirty={isDirty}
                   setIsDirty={setIsDirty}
                   deviceParams={deviceParams}
-                />}
+                  setInitialDeviceParams={setInitialDeviceParams}
+                  nodeType={selectedDeviceKey ?? ""}
+                />
+            }
           </MainLayout>}
     </>
   )

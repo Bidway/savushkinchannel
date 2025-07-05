@@ -1,9 +1,11 @@
 import type {DeviceParamsType} from "../types/nodeType.ts";
+import * as React from "react";
 
 export const applyChangesParams = async (
   form: HTMLFormElement,
   deviceParams: DeviceParamsType[],
-  setIsDirty: React.Dispatch<React.SetStateAction<boolean>>
+  setIsDirty: React.Dispatch<React.SetStateAction<boolean>>,
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
 ) => {
   const formData = new FormData(form);
   const patchPayload: { key: string; value: string }[] = [];
@@ -27,8 +29,7 @@ export const applyChangesParams = async (
         }
         break;
       }
-      case 'checkbox':
-      case 'check': {
+      case 'checkbox': {
         const isChecked = formData.get(inputName) === 'on'; // true if checked
         if (isChecked !== param.value) {
           patchPayload.push({ key: param.key, value: isChecked });
@@ -38,11 +39,32 @@ export const applyChangesParams = async (
     }
   });
 
+  const updateParams: DeviceParamsType[] = deviceParams.map(param => {
+    const inputName = `input-${param.key}`;
+    const textareaName = `textarea-${param.key}`;
+
+    switch (param.type) {
+      case 'input': {
+        const value = formData.get(inputName)?.toString() ?? '';
+        return { ...param, value };
+      }
+      case 'textarea': {
+        const value = formData.get(textareaName)?.toString() ?? '';
+        return { ...param, value };
+      }
+      case 'checkbox': {
+        const isChecked = formData.get(inputName) === 'on';
+        return { ...param, value: isChecked };
+      }
+      default:
+        return param;
+    }
+  });
+
   if (patchPayload.length === 0) {
     console.log('Нет изменений');
     return;
   }
-  console.log(patchPayload)
   try {
     const response = await fetch('http://localhost:8080/api/device-params', {
       method: 'PATCH',
@@ -54,7 +76,8 @@ export const applyChangesParams = async (
 
     if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
 
-    console.log('Изменения применены:', patchPayload);
+    console.log('Изменения применены:', deviceParams);
+    setInitialDeviceParams(updateParams)
     setIsDirty(false);
   } catch (err) {
     console.error('Ошибка при отправке PATCH:', err);

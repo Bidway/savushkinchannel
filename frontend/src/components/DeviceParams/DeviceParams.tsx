@@ -3,16 +3,25 @@ import type {DeviceParamsType} from "../../types/nodeType.ts";
 import './DeviceParams.scss';
 import {type FormEvent} from "react";
 import {applyChangesParams} from "../../utils/applyChangesParams.ts";
+import SelectContextMenu from "../SelectContextMenu/SelectContextMenu.tsx";
 
 interface DeviceParamsProps {
   deviceParams: DeviceParamsType[];
   isDirty: boolean;
   setIsDirty: React.Dispatch<React.SetStateAction<boolean>>;
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>;
+  nodeType: string;
 }
 
-const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIsDirty}) => {
+const DeviceParams: React.FC<DeviceParamsProps> = ({
+    deviceParams,
+    isDirty,
+    setIsDirty,
+    setInitialDeviceParams,
+    nodeType
+  }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, type } = e.target;
+    const {name, type} = e.target;
 
     let newValue: string | boolean;
 
@@ -41,7 +50,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await applyChangesParams(e.currentTarget, deviceParams, setIsDirty);
+    await applyChangesParams(e.currentTarget, deviceParams, setIsDirty, setInitialDeviceParams);
   }
 
   return (
@@ -50,7 +59,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
         switch (param.type) {
           case 'input':
             return (
-              <div key={param.key} className={"textarea__container"}>
+              <div key={param.key} className={"input__container"}>
                 <label htmlFor={`input-${param.key}`}>{param.name}</label>
                 <input
                   id={`input-${param.key}`}
@@ -58,12 +67,12 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
                   key={param.key}
                   type={"text"}
                   onChange={handleChange}
-                  defaultValue={param.value} />
+                  defaultValue={param.value}/>
               </div>
             )
           case 'checkbox':
             return (
-              <div key={param.key}>
+              <div key={param.key} className={"checkbox__container"}>
                 <input
                   name={`input-${param.key}`}
                   id={`input-${param.key}`}
@@ -71,7 +80,7 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
                   onChange={handleChange}
                   defaultChecked={Boolean(param.value)}
                 />
-                <label htmlFor={`input-${param.key}`}>{param.value}</label>
+                <label htmlFor={`input-${param.key}`}>{param.name}</label>
               </div>
             )
           case 'textarea':
@@ -91,6 +100,19 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({deviceParams, isDirty, setIs
             return <span key={param.key}>{param.value}</span>
         }
       })}
+      {nodeType.includes("dev") && (
+        <>
+          <SelectContextMenu name={"general_param"} title={"Общие параметры"} value={[]}/>
+          <SelectContextMenu name={"init_param"} title={"Параметры инициализации"} value={[]}/>
+          <SelectContextMenu name={"completion_param"} title={"Параметры завершения"} value={[]}/>
+        </>
+      )}
+      {nodeType.includes("sub") && (
+        <SelectContextMenu name={"subtype_param"} title={"Параметры"} value={[]}/>
+      )}
+      {nodeType.includes("cha") && (
+        <SelectContextMenu name={"channel_param"} title={"Параметры канала"} value={[]}/>
+      )}
       <button type="submit" disabled={!isDirty}>
         Применить
       </button>
