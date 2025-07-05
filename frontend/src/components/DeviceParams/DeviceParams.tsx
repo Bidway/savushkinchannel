@@ -1,7 +1,7 @@
 import * as React from "react";
 import type {DeviceParamsType} from "../../types/nodeType.ts";
 import './DeviceParams.scss';
-import {type FormEvent} from "react";
+import {type FormEvent, useEffect, useState} from "react";
 import {applyChangesParams} from "../../utils/applyChangesParams.ts";
 import SelectContextMenu from "../SelectContextMenu/SelectContextMenu.tsx";
 
@@ -20,6 +20,8 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({
     setInitialDeviceParams,
     nodeType
   }) => {
+  const [optionParams, setOptionParams] = useState(deviceParams.filter(param => param.type === 'option'));
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const {name, type} = e.target;
 
@@ -51,7 +53,11 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await applyChangesParams(e.currentTarget, deviceParams, setIsDirty, setInitialDeviceParams);
-  }
+  };
+
+  useEffect(() => {
+    setOptionParams(deviceParams.filter(param => param.type === 'option'))
+  }, [deviceParams])
 
   return (
     <form onSubmit={handleSubmit} className={"params"}>
@@ -102,16 +108,16 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({
       })}
       {nodeType.includes("dev") && (
         <>
-          <SelectContextMenu name={"general_param"} title={"Общие параметры"} value={[]}/>
-          <SelectContextMenu name={"init_param"} title={"Параметры инициализации"} value={[]}/>
-          <SelectContextMenu name={"completion_param"} title={"Параметры завершения"} value={[]}/>
+          <SelectContextMenu name={"general_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
+          <SelectContextMenu name={"init_param"} title={"Параметры инициализации"} value={optionParams.filter(param => param.name === "Параметры инициализации")}/>
+          <SelectContextMenu name={"completion_param"} title={"Параметры завершения"} value={optionParams.filter(param => param.name === "Параметры завершения")}/>
         </>
       )}
       {nodeType.includes("sub") && (
-        <SelectContextMenu name={"subtype_param"} title={"Параметры"} value={[]}/>
+        <SelectContextMenu name={"subtype_param"} title={"Параметры"} value={optionParams.filter(param => param.name === "Параметры")}/>
       )}
       {nodeType.includes("cha") && (
-        <SelectContextMenu name={"channel_param"} title={"Параметры канала"} value={[]}/>
+        <SelectContextMenu name={"channel_param"} title={"Параметры канала"} value={optionParams.filter(param => param.name === "Параметры канала")}/>
       )}
       <button type="submit" disabled={!isDirty}>
         Применить

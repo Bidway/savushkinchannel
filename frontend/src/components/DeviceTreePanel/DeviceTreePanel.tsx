@@ -20,9 +20,8 @@ interface DeviceTreePanelProps {
   setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
 }
 
-const isSubtypeNode = (node: DeviceNodeType): boolean => {
-  // по ключу или названию — настраивай под себя
-  return node.key.startsWith('sub');
+const isSubtypeNode = (node: DataNode): boolean => {
+  return node.key.toString().startsWith('sub');
 };
 
 
