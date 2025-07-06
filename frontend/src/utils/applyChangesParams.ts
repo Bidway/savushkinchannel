@@ -1,5 +1,6 @@
 import type {DeviceParamsType} from "../types/nodeType.ts";
 import * as React from "react";
+import {patchParam} from "./treeApi.ts";
 
 export const applyChangesParams = async (
   form: HTMLFormElement,
@@ -66,18 +67,9 @@ export const applyChangesParams = async (
     return;
   }
   try {
-    const response = await fetch('http://localhost:8080/api/device-params', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(patchPayload),
-    });
-
-    if (!response.ok) throw new Error(`Ошибка: ${response.status}`);
-
+    await patchParam(patchPayload);
     console.log('Изменения применены:', deviceParams);
-    setInitialDeviceParams(updateParams)
+    setInitialDeviceParams(updateParams);
     setIsDirty(false);
   } catch (err) {
     console.error('Ошибка при отправке PATCH:', err);

@@ -3,7 +3,7 @@ import DeviceTreePanel from "./components/DeviceTreePanel/DeviceTreePanel.tsx";
 import MainLayout from "./layout/MainLayout/MainLayout.tsx";
 import HeaderBar from "./components/HeaderBar/HeaderBar.tsx";
 import StartMenu from "./components/StartMenu/StartMenu.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import type {TreeProps} from "rc-tree";
 import DeviceParams from "./components/DeviceParams/DeviceParams.tsx";
 import type {DeviceNodeType, DeviceParamsType} from "./types/nodeType.ts";
@@ -60,7 +60,9 @@ function App() {
       node: info.node,
     });
   };
-
+  useEffect(() => {
+    console.log(initialDeviceParams);
+  }, [initialDeviceParams]);
   return (
     <>
       <HeaderBar />

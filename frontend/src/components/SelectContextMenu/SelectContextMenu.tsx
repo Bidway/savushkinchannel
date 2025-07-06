@@ -79,8 +79,9 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         alert('Параметр не найден');
         return;
       }
-      if (contextMenu.targetValue === "Удалить") {
+      if (action === "Удалить") {
         try {
+          console.log('удалить')
           await deleteParam(target.key);
           setInitialDeviceParams(prev => prev.filter(p => p.key !== target.key));
         } catch (err) {
@@ -92,9 +93,12 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
       if (action === 'Изменить') {
         const newValue = prompt('Новое значение параметра:', target.value);
         if (!newValue || newValue === target.value) return;
-
+        const patchPayload = {
+          key: target.key,
+          value: newValue
+        }
         try {
-          await patchParam(target.key, newValue);
+          await patchParam([patchPayload]);
           setInitialDeviceParams(prev =>
             prev.map(p => p.key === target.key ? { ...p, value: newValue } : p)
           );
@@ -114,7 +118,6 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         name: title,
         value: newName
       };
-      console.log(tempParam);
       try {
         const {param} = await addParam(tempParam);
         setInitialDeviceParams(prev => [...prev, param]);

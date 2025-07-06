@@ -7,7 +7,7 @@ type nodeType = {
 }
 // Добавление узла (подтип или канал)
 export const addNode = async (node: DeviceNodeType): Promise<nodeType> => {
-  const response = await fetch('http://localhost:8080/api/devices', {
+  const response = await fetch('http://localhost:8080/api/node', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(node),
@@ -24,7 +24,7 @@ export const addNode = async (node: DeviceNodeType): Promise<nodeType> => {
 
 // Удаление узла и его потомков
 export const deleteNode = async (key: string): Promise<void> => {
-  const response = await fetch(`http://localhost:8080/api/devices/${key}`, {
+  const response = await fetch(`http://localhost:8080/api/node/${key}`, {
     method: 'DELETE',
   });
 
@@ -48,7 +48,7 @@ export const addParam = async (param: DeviceParamsWithoutKey) => {
 };
 
 export const deleteParam = async (key: string): Promise<void> => {
-  const response = await fetch(`http://localhost:8080/api/params/${key}`, {
+  const response = await fetch(`http://localhost:8080/api/param/${key}`, {
     method: 'DELETE',
   });
 
@@ -57,13 +57,13 @@ export const deleteParam = async (key: string): Promise<void> => {
   }
 };
 
-export const patchParam = async (key: string, value: string) => {
-  const response = await fetch(`http://localhost:8080/api/params/${key}`, {
+export const patchParam = async (value: {key: string, value: string}[]) => {
+  const response = await fetch(`http://localhost:8080/api/param/update`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ value }),
+    body: JSON.stringify(value),
   });
 
   if (!response.ok) {
