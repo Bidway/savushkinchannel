@@ -114,10 +114,10 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({
         </>
       )}
       {nodeType.includes("sub") && (
-        <SelectContextMenu parentKey={nodeType} setOptionParams={setOptionParams} name={"subtype_param"} title={"Параметры"} value={optionParams.filter(param => param.name === "Параметры")}/>
+        <SelectContextMenu parentKey={nodeType} setOptionParams={setOptionParams} name={"subtype_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Параметры")}/>
       )}
       {nodeType.includes("cha") && (
-        <SelectContextMenu parentKey={nodeType} setOptionParams={setOptionParams} name={"channel_param"} title={"Параметры канала"} value={optionParams.filter(param => param.name === "Параметры канала")}/>
+        <SelectContextMenu parentKey={nodeType} setOptionParams={setOptionParams} name={"channel_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Параметры канала")}/>
       )}
       <button type="submit" disabled={!isDirty}>
         Применить
