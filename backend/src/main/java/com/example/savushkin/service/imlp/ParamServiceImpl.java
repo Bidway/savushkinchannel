@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ParamServiceImpl implements ParamService {
-    private ParamRepository paramRepository;
-    private DescriptionRepository descriptionRepository;
-    private NodeRepository nodeRepository;
+    private final ParamRepository paramRepository;
+    private final DescriptionRepository descriptionRepository;
+    private final NodeRepository nodeRepository;
 
     @Override
     public void deleteParamById(Long id) {
