@@ -109,7 +109,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
       }
 
     } else {
-      const newName = prompt('Введите название параметра:');
+      const newName = prompt('Введите название параметра:')?.trim();
 
       if (!newName) return;
 
@@ -119,7 +119,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         value: newName
       };
       try {
-        const {param} = await addParam(tempParam);
+        const param = await addParam(tempParam);
         setInitialDeviceParams(prev => [...prev, param]);
       } catch (error) {
         console.error('Ошибка при добавлении:', error);

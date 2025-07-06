@@ -1,4 +1,4 @@
-import type {DeviceNodeType, DeviceParamsWithoutKey} from "../types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsFromAddFunc} from "../types/nodeType.ts";
 
 
 type nodeType = {
@@ -33,7 +33,7 @@ export const deleteNode = async (key: string): Promise<void> => {
   }
 };
 
-export const addParam = async (param: DeviceParamsWithoutKey) => {
+export const addParam = async (param: DeviceParamsFromAddFunc) => {
   const response = await fetch('http://localhost:8080/api/param', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
