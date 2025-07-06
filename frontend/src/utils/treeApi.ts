@@ -53,7 +53,7 @@ export const deleteParam = async (key: string): Promise<void> => {
 };
 
 export const patchParam = async (key: string, value: string) => {
-  const response = await fetch(`http://localhost:8080/api/device-params/${key}`, {
+  const response = await fetch(`http://localhost:8080/api/params/${key}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
