@@ -1,7 +1,7 @@
 import {useState, useRef, useEffect} from "react";
 import './SelectContextMenu.scss';
 import type {DeviceParamsType} from "../../types/nodeType.ts";
-import {addParam, deleteParam} from "../../utils/treeApi.ts";
+import {addParam, deleteParam, patchParam} from "../../utils/treeApi.ts";
 import * as React from "react";
 
 type MenuState = {
@@ -94,8 +94,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         if (!newValue || newValue === target.value) return;
 
         try {
-          // PATCH-запрос или локальное обновление, если не требуется сервер
-          // Допустим, локально:
+          await patchParam(target.key, newValue);
           setOptionParams(prev =>
             prev.map(p => p.key === target.key ? { ...p, value: newValue } : p)
           );
