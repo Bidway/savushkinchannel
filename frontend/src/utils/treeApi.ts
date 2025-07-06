@@ -18,8 +18,7 @@ export const addNode = async (node: DeviceNodeType): Promise<nodeType> => {
     throw new Error(`Ошибка добавления узла: ${response.statusText}`);
   }
 
-  const data: nodeType = await response.json();
-  return data;
+  return await response.json();
 };
 
 // Удаление узла и его потомков
