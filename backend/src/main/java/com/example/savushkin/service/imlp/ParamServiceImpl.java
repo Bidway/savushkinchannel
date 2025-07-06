@@ -54,16 +54,13 @@ public class ParamServiceImpl implements ParamService {
         List<Long> ids = keyValues.stream().map(KeyValue::getKey).collect(Collectors.toList());
         List<NodeParam> nodeParams = paramRepository.findAllByIdIn(ids);
 
-        // Собираем ID, которые не были найдены
         Set<Long> missingIds = new HashSet<>(ids);
-        nodeParams.forEach(param -> missingIds.remove(param.getId())); // Удаляем найденные
+        nodeParams.forEach(param -> missingIds.remove(param.getId()));
 
         if (!missingIds.isEmpty()) {
-            // Если есть ID, для которых не нашлось NodeParam, возвращаем BAD_REQUEST
             return ResponseEntity.badRequest().build();
         }
 
-        // Обновляем параметры
         nodeParams.forEach(param -> {
             keyValues.stream()
                     .filter(kv -> kv.getKey().equals(param.getId()))
@@ -71,7 +68,6 @@ public class ParamServiceImpl implements ParamService {
                     .ifPresent(kv -> param.setValue(kv.getValue()));
         });
 
-        // Сохраняем все изменения (можно batch-обновление, если поддерживается)
         paramRepository.saveAll(nodeParams);
 
         return ResponseEntity.ok().build();
