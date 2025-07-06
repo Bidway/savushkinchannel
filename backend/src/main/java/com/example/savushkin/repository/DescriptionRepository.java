@@ -11,4 +11,6 @@ import java.util.List;
 public interface DescriptionRepository extends JpaRepository<Description, Long> {
     @Query("SELECT d FROM Description d ORDER BY d.id ASC")
     List<Description> findAll();
+
+    Description findByName(String name);
 }

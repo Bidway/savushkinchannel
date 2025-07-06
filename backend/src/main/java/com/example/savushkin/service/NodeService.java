@@ -13,4 +13,6 @@ public interface NodeService {
     CreateNodeResponse createNode(CreateNodeDTO createNodeDTO);
     ResponseEntity<Void> updateNode(List<KeyValue> keyValues);
     NodeResponse getFullHierarchy(String site, String project);
+    void deleteParamById(Long id);
+    ParamDTO createParam(CreateParamDTO createParamDTO);
 }

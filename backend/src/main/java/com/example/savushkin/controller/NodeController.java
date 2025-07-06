@@ -26,6 +26,17 @@ public class NodeController {
         return ResponseEntity.ok(response);
     }
 
+    @DeleteMapping("/params/{id}")
+    public ResponseEntity<Void> deleteParam(@PathVariable String id) {
+        nodeService.deleteNodeByIdNode(id);
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/params")
+    public ResponseEntity<ParamDTO> createParam(@RequestBody CreateParamDTO createParamDTO) {
+        ParamDTO response = nodeService.createParam(createParamDTO);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/device-params")
     public ResponseEntity updateNode(@RequestBody List<KeyValue> keyValues) {
         return ResponseEntity.ok(nodeService.updateNode(keyValues));

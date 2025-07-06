@@ -41,6 +41,8 @@ public class NodeServiceImpl implements NodeService {
         nodeRepository.deleteNodeByIdNode(idNode);
     }
 
+
+
     @Override
     public CreateNodeResponse createNode(CreateNodeDTO createNodeDTO) {
         CreateNodeResponse response = new CreateNodeResponse();
@@ -174,5 +176,28 @@ public class NodeServiceImpl implements NodeService {
             response.getNodes().add(dto);
         });
         return response;
+    }
+
+    @Override
+    public void deleteParamById(Long id) {
+        paramRepository.deleteById(id);
+    }
+
+    @Override
+    public ParamDTO createParam(CreateParamDTO createParamDTO) {
+        Description description = descriptionRepository.findByName(createParamDTO.getName());
+        Node node = nodeRepository.getNodeByIdNode(createParamDTO.getIdNode());
+        NodeParam nodeParam = new NodeParam();
+        nodeParam.setIdType(description.getId());
+        nodeParam.setNode(node);
+        nodeParam.setValue(createParamDTO.getValue());
+        NodeParam savedParam = paramRepository.save(nodeParam);
+        ParamDTO dto = new ParamDTO();
+        dto.setId(savedParam.getId());
+        dto.setIdNode(savedParam.getNode().getIdNode());
+        dto.setName(description.getName());
+        dto.setType(description.getType());
+        dto.setValue(savedParam.getValue());
+        return dto;
     }
 }

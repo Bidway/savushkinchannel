@@ -13,5 +13,7 @@ public interface ParamRepository extends JpaRepository<NodeParam, Long> {
     @Query(value = "SELECT p.* FROM param p WHERE p.id_node IN :nodeIds", nativeQuery = true)
     List<NodeParam> findParamsByNodeIds(@Param("nodeIds") List<String> nodeIds);
 
+
+
     List<NodeParam> findAllByIdIn(List<Long> ids);
 }
