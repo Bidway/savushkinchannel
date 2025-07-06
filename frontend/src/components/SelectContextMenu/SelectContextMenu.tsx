@@ -1,6 +1,8 @@
 import {useState, useRef, useEffect} from "react";
 import './SelectContextMenu.scss';
 import type {DeviceParamsType} from "../../types/nodeType.ts";
+import {addParam, deleteParam} from "../../utils/treeApi.ts";
+import * as React from "react";
 
 type MenuState = {
   visible: boolean;
@@ -19,9 +21,11 @@ interface SelectContextMenuProps {
   name: string;
   title: string;
   value: DeviceParamsType[];
+  setOptionParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
+  parentKey: string;
 }
 
-const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value}) => {
+const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value, setOptionParams, parentKey}) => {
   const [contextMenu, setContextMenu] = useState<MenuState>({
     visible: false,
     x: 0,
@@ -66,11 +70,60 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
     }
   };
 
-  const handleMenuClick = (action: string) => {
+  const handleMenuClick = async (action: string) => {
     if (contextMenu.targetType === 'option') {
-      console.log(`${action} параметр: ${contextMenu.targetValue}`);
+      const valueToDelete = contextMenu.targetValue;
+      const target = value.find(p => p.value === valueToDelete);
+
+      if (!target) {
+        alert('Параметр не найден');
+        return;
+      }
+      if (contextMenu.targetValue === "Удалить") {
+        try {
+          await deleteParam(target.key);
+          setOptionParams(prev => prev.filter(p => p.key !== target.key));
+        } catch (err) {
+          console.error('Ошибка при удалении:', err);
+          alert('Не удалось удалить параметр.');
+        }
+      }
+
+      if (action === 'Изменить') {
+        const newValue = prompt('Новое значение параметра:', target.value);
+        if (!newValue || newValue === target.value) return;
+
+        try {
+          // PATCH-запрос или локальное обновление, если не требуется сервер
+          // Допустим, локально:
+          setOptionParams(prev =>
+            prev.map(p => p.key === target.key ? { ...p, value: newValue } : p)
+          );
+        } catch (err) {
+          console.error('Ошибка при изменении:', err);
+          alert('Не удалось изменить параметр.');
+        }
+      }
+
     } else {
-      console.log(`${action} параметр`);
+      const newName = prompt('Введите название параметра:');
+
+      if (!newName) return;
+
+      const tempParam = {
+        parentKey: parentKey,
+        name: title,
+        type: "option",
+        value: newName
+      };
+      try {
+        const {param} = await addParam(tempParam);
+        setOptionParams(prev => [...prev, param]);
+      } catch (error) {
+        console.error('Ошибка при добавлении:', error);
+        alert('Не удалось добавить параметр. Попробуйте ещё раз.');
+      }
+
     }
 
     setContextMenu(prev => ({ ...prev, visible: false }));
@@ -97,9 +150,6 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         multiple
         onContextMenu={handleContextMenu}
       >
-        <option value="test">test</option>
-        <option value="temp">temperature</option>
-        <option value="press">pressure</option>
         {value.map(optionNode => (
           <option key={optionNode.key} value={optionNode.value}>{optionNode.value}</option>
         ))}

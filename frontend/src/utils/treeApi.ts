@@ -1,4 +1,4 @@
-import type {DeviceNodeType} from "../types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsWithoutKey} from "../types/nodeType.ts";
 
 // Добавление узла (подтип или канал)
 export const addNode = async (node: DeviceNodeType): Promise<void> => {
@@ -27,6 +27,33 @@ export const deleteNode = async (key: string): Promise<void> => {
     throw new Error('Ошибка при удалении узла');
   }
 };
+
+export const addParam = async (param: DeviceParamsWithoutKey) => {
+  const response = await fetch('http://localhost:8080/api/param', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(param),
+  });
+  if (!response.ok) {
+    throw new Error(`Ошибка добавления параметра: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data;
+};
+
+export const deleteParam = async (key: string): Promise<void> => {
+  const response = await fetch(`http://localhost:8080/api/params/${key}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('Ошибка при удалении узла');
+  }
+};
+
+
+
 
 
 
