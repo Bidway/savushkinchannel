@@ -108,16 +108,16 @@ const DeviceParams: React.FC<DeviceParamsProps> = ({
       })}
       {nodeType.includes("dev") && (
         <>
-          <SelectContextMenu parentKey={nodeType} setInitialDeviceParams={setInitialDeviceParams} name={"general_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
-          <SelectContextMenu parentKey={nodeType} setInitialDeviceParams={setInitialDeviceParams} name={"init_param"} title={"Параметры инициализации"} value={optionParams.filter(param => param.name === "Параметры инициализации")}/>
-          <SelectContextMenu parentKey={nodeType} setInitialDeviceParams={setInitialDeviceParams} name={"completion_param"} title={"Параметры завершения"} value={optionParams.filter(param => param.name === "Параметры завершения")}/>
+          <SelectContextMenu parentKey={nodeType} name={"general_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
+          <SelectContextMenu parentKey={nodeType} name={"init_param"} title={"Параметры инициализации"} value={optionParams.filter(param => param.name === "Параметры инициализации")}/>
+          <SelectContextMenu parentKey={nodeType} name={"completion_param"} title={"Параметры завершения"} value={optionParams.filter(param => param.name === "Параметры завершения")}/>
         </>
       )}
       {nodeType.includes("sub") && (
-        <SelectContextMenu parentKey={nodeType} setInitialDeviceParams={setInitialDeviceParams} name={"subtype_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
+        <SelectContextMenu parentKey={nodeType} name={"subtype_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
       )}
       {nodeType.includes("cha") && (
-        <SelectContextMenu parentKey={nodeType} setInitialDeviceParams={setInitialDeviceParams} name={"channel_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
+        <SelectContextMenu parentKey={nodeType} name={"channel_param"} title={"Общие параметры"} value={optionParams.filter(param => param.name === "Общие параметры")}/>
       )}
       <button type="submit" disabled={!isDirty}>
         Применить

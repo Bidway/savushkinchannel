@@ -21,17 +21,18 @@ interface SelectContextMenuProps {
   name: string;
   title: string;
   value: DeviceParamsType[];
-  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
   parentKey: string;
 }
 
-const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value, setInitialDeviceParams, parentKey}) => {
+const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value, parentKey}) => {
   const [contextMenu, setContextMenu] = useState<MenuState>({
     visible: false,
     x: 0,
     y: 0,
     targetType: 'select',
   });
+
+  const [options, setOptions] = useState<DeviceParamsType[]>(value);
 
   const selectRef = useRef<HTMLSelectElement>(null);
 
@@ -73,7 +74,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
   const handleMenuClick = async (action: string) => {
     if (contextMenu.targetType === 'option') {
       const valueToDelete = contextMenu.targetValue;
-      const target = value.find(p => p.value === valueToDelete);
+      const target = options.find(p => p.value === valueToDelete);
 
       if (!target) {
         alert('Параметр не найден');
@@ -83,7 +84,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         try {
           console.log('удалить')
           await deleteParam(target.key);
-          setInitialDeviceParams(prev => prev.filter(p => p.key !== target.key));
+          setOptions(prev => prev.filter(p => p.key !== target.key));
         } catch (err) {
           console.error('Ошибка при удалении:', err);
           alert('Не удалось удалить параметр.');
@@ -99,7 +100,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         }
         try {
           await patchParam([patchPayload]);
-          setInitialDeviceParams(prev =>
+          setOptions(prev =>
             prev.map(p => p.key === target.key ? { ...p, value: newValue } : p)
           );
         } catch (err) {
@@ -120,7 +121,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
       };
       try {
         const param = await addParam(tempParam);
-        setInitialDeviceParams(prev => [...prev, param]);
+        setOptions(prev => [...prev, param]);
       } catch (error) {
         console.error('Ошибка при добавлении:', error);
         alert('Не удалось добавить параметр. Попробуйте ещё раз.');
@@ -152,7 +153,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         multiple
         onContextMenu={handleContextMenu}
       >
-        {value.map(optionNode => (
+        {options.map(optionNode => (
           <option key={optionNode.key} value={optionNode.value}>{optionNode.value}</option>
         ))}
       </select>
