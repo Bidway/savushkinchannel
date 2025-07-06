@@ -114,7 +114,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
         name: title,
         value: newName
       };
-      console.log(tempParam)
+      console.log(tempParam);
       try {
         const {param} = await addParam(tempParam);
         setOptionParams(prev => [...prev, param]);

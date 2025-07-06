@@ -1,7 +1,12 @@
 import type {DeviceNodeType, DeviceParamsWithoutKey} from "../types/nodeType.ts";
 
+
+type nodeType = {
+  nodeDTO: DeviceNodeType[];
+  params: DeviceNodeType[];
+}
 // Добавление узла (подтип или канал)
-export const addNode = async (node: DeviceNodeType): Promise<void> => {
+export const addNode = async (node: DeviceNodeType): Promise<nodeType> => {
   const response = await fetch('http://localhost:8080/api/devices', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -13,7 +18,7 @@ export const addNode = async (node: DeviceNodeType): Promise<void> => {
     throw new Error(`Ошибка добавления узла: ${response.statusText}`);
   }
 
-  const data = await response.json();
+  const data: nodeType = await response.json();
   return data;
 };
 
