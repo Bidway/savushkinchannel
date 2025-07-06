@@ -19,3 +19,5 @@ export type DeviceParamsType = {
   type: string;
   value: string;
 }
+
+export type DeviceParamsWithoutKey = Omit<DeviceParamsType, 'key'>;
