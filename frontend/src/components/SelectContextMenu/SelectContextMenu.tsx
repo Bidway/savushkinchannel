@@ -21,11 +21,11 @@ interface SelectContextMenuProps {
   name: string;
   title: string;
   value: DeviceParamsType[];
-  setOptionParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
   parentKey: string;
 }
 
-const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value, setOptionParams, parentKey}) => {
+const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value, setInitialDeviceParams, parentKey}) => {
   const [contextMenu, setContextMenu] = useState<MenuState>({
     visible: false,
     x: 0,
@@ -82,7 +82,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
       if (contextMenu.targetValue === "Удалить") {
         try {
           await deleteParam(target.key);
-          setOptionParams(prev => prev.filter(p => p.key !== target.key));
+          setInitialDeviceParams(prev => prev.filter(p => p.key !== target.key));
         } catch (err) {
           console.error('Ошибка при удалении:', err);
           alert('Не удалось удалить параметр.');
@@ -95,7 +95,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
 
         try {
           await patchParam(target.key, newValue);
-          setOptionParams(prev =>
+          setInitialDeviceParams(prev =>
             prev.map(p => p.key === target.key ? { ...p, value: newValue } : p)
           );
         } catch (err) {
@@ -117,7 +117,7 @@ const SelectContextMenu: React.FC<SelectContextMenuProps> = ({name, title, value
       console.log(tempParam);
       try {
         const {param} = await addParam(tempParam);
-        setOptionParams(prev => [...prev, param]);
+        setInitialDeviceParams(prev => [...prev, param]);
       } catch (error) {
         console.error('Ошибка при добавлении:', error);
         alert('Не удалось добавить параметр. Попробуйте ещё раз.');
