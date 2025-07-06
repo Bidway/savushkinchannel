@@ -28,7 +28,6 @@ public class NodeServiceImpl implements NodeService {
     private final NodeRepository nodeRepository;
     private final DescriptionRepository descriptionRepository;
     private final ParamRepository paramRepository;
-    private final EntityManager entityManager;
 
     @Override
     public void deleteNode(Long id) {
@@ -42,13 +41,10 @@ public class NodeServiceImpl implements NodeService {
     }
 
 
-
     @Override
     public CreateNodeResponse createNode(CreateNodeDTO createNodeDTO) {
         CreateNodeResponse response = new CreateNodeResponse();
         validateNodeType(createNodeDTO.getType());
-
-
 
         Node node = new Node();
         node.setNodeType(createNodeDTO.getType());
@@ -100,35 +96,6 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public ResponseEntity<Void> updateNode(List<KeyValue> keyValues) {
-        List<Long> ids = keyValues.stream().map(KeyValue::getKey).collect(Collectors.toList());
-        List<NodeParam> nodeParams = paramRepository.findAllByIdIn(ids);
-
-        // Собираем ID, которые не были найдены
-        Set<Long> missingIds = new HashSet<>(ids);
-        nodeParams.forEach(param -> missingIds.remove(param.getId())); // Удаляем найденные
-
-        if (!missingIds.isEmpty()) {
-            // Если есть ID, для которых не нашлось NodeParam, возвращаем BAD_REQUEST
-            return ResponseEntity.badRequest().build();
-        }
-
-        // Обновляем параметры
-        nodeParams.forEach(param -> {
-            keyValues.stream()
-                    .filter(kv -> kv.getKey().equals(param.getId()))
-                    .findFirst()
-                    .ifPresent(kv -> param.setValue(kv.getValue()));
-        });
-
-        // Сохраняем все изменения (можно batch-обновление, если поддерживается)
-        paramRepository.saveAll(nodeParams);
-
-        return ResponseEntity.ok().build();
-    }
-
-
-    @Override
     public NodeResponse getFullHierarchy(String site, String project) {
         NodeResponse response = new NodeResponse();
 
@@ -178,26 +145,5 @@ public class NodeServiceImpl implements NodeService {
         return response;
     }
 
-    @Override
-    public void deleteParamById(Long id) {
-        paramRepository.deleteById(id);
-    }
 
-    @Override
-    public ParamDTO createParam(CreateParamDTO createParamDTO) {
-        Description description = descriptionRepository.findByName(createParamDTO.getName());
-        Node node = nodeRepository.getNodeByIdNode(createParamDTO.getIdNode());
-        NodeParam nodeParam = new NodeParam();
-        nodeParam.setIdType(description.getId());
-        nodeParam.setNode(node);
-        nodeParam.setValue(createParamDTO.getValue());
-        NodeParam savedParam = paramRepository.save(nodeParam);
-        ParamDTO dto = new ParamDTO();
-        dto.setId(savedParam.getId());
-        dto.setIdNode(savedParam.getNode().getIdNode());
-        dto.setName(description.getName());
-        dto.setType(description.getType());
-        dto.setValue(savedParam.getValue());
-        return dto;
-    }
 }

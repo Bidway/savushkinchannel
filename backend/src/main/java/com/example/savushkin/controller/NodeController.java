@@ -9,44 +9,27 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/node")
 @RequiredArgsConstructor
 public class NodeController {
     private final NodeService nodeService;
 
-
-    @DeleteMapping("/devices/{idNode}")
+    @DeleteMapping("/{idNode}")
     public ResponseEntity<Void> deleteNode(@PathVariable String idNode) {
         nodeService.deleteNodeByIdNode(idNode);
         return ResponseEntity.noContent().build();
     }
-    @PostMapping("/devices")
+
+    @PostMapping("")
     public ResponseEntity<CreateNodeResponse> createNode(@RequestBody CreateNodeDTO createNodeDTO) {
         CreateNodeResponse response = nodeService.createNode(createNodeDTO);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/params/{id}")
-    public ResponseEntity<Void> deleteParam(@PathVariable String id) {
-        nodeService.deleteNodeByIdNode(id);
-        return ResponseEntity.noContent().build();
-    }
-    @PostMapping("/params")
-    public ResponseEntity<ParamDTO> createParam(@RequestBody CreateParamDTO createParamDTO) {
-        ParamDTO response = nodeService.createParam(createParamDTO);
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/device-params")
-    public ResponseEntity updateNode(@RequestBody List<KeyValue> keyValues) {
-        return ResponseEntity.ok(nodeService.updateNode(keyValues));
-    }
-
-    @GetMapping("/nodes/search")
+    @GetMapping("/all")
     public ResponseEntity<NodeResponse> getFullHierarchy(
             @RequestParam String site,
             @RequestParam String project) {
-
         return ResponseEntity.ok(nodeService.getFullHierarchy(site, project));
     }
 
