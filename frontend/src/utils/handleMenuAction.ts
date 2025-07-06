@@ -1,12 +1,14 @@
 import {addNode, deleteNode} from "./treeApi.ts";
-import type {DeviceNodeType} from "../types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsType} from "../types/nodeType.ts";
+import type {ContextMenuState} from "../types/ContextMenuState.ts";
+import * as React from "react";
 
 export const handleMenuAction = async (
   action: string,
-  contextMenu,
-  setContextMenu,
-  setTreeData,
-  setInitialDeviceParams
+  contextMenu: ContextMenuState,
+  setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>,
+  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>,
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
 ) => {
   const targetNode = contextMenu.node;
   switch (action) {
