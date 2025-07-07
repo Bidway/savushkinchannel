@@ -1,7 +1,15 @@
 import {addNode, deleteNode} from "./treeApi.ts";
-import type {DeviceNodeType} from "../types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsType} from "../types/nodeType.ts";
+import type {ContextMenuState} from "../types/ContextMenuState.ts";
+import * as React from "react";
 
-export const handleMenuAction = async (action: string, contextMenu, setContextMenu, setTreeData) => {
+export const handleMenuAction = async (
+  action: string,
+  contextMenu: ContextMenuState,
+  setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>,
+  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>,
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
+) => {
   const targetNode = contextMenu.node;
   switch (action) {
     case 'Удалить': {
@@ -33,14 +41,16 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       if (!newName) break;
 
       const tempNode = {
+        type: "sub",
         title: newName,
         isLeaf: false,
         parentKey: targetNode?.key as string,
       };
 
       try {
-        const savedNode = await addNode(tempNode);
-        setTreeData(prev => [...prev, savedNode]);
+        const {nodeDTO, params} = await addNode(tempNode);
+        setTreeData(prev => [...prev, nodeDTO]);
+        setInitialDeviceParams(prev => [...prev, ...params]);
       } catch (error) {
         console.error('Ошибка при добавлении:', error);
         alert('Не удалось добавить узел. Попробуйте ещё раз.');
@@ -51,15 +61,17 @@ export const handleMenuAction = async (action: string, contextMenu, setContextMe
       const newName = prompt('Введите название канала:');
       if (!newName) break;
 
-      const newNode = {
+      const tempNode = {
+        type: "cha",
         title: newName,
         isLeaf: true,
         parentKey: targetNode?.key as string,
       };
 
      try {
-       const savedNode = await addNode(newNode);
-       setTreeData(prev => [...prev, savedNode]);
+       const {nodeDTO, params} = await addNode(tempNode);
+       setTreeData(prev => [...prev, nodeDTO]);
+       setInitialDeviceParams(prev => [...prev, ...params]);
      } catch (error) {
        console.error('Ошибка при добавлении:', error);
        alert('Не удалось добавить узел. Попробуйте ещё раз.');

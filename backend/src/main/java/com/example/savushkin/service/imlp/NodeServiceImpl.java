@@ -1,17 +1,25 @@
 package com.example.savushkin.service.imlp;
 
+import com.example.savushkin.config.NodeTemplates;
 import com.example.savushkin.dto.*;
+import com.example.savushkin.exception.NotFoundException;
 import com.example.savushkin.model.Description;
 import com.example.savushkin.model.Node;
 import com.example.savushkin.model.NodeParam;
 import com.example.savushkin.repository.DescriptionRepository;
 import com.example.savushkin.repository.NodeRepository;
+import com.example.savushkin.repository.ParamRepository;
 import com.example.savushkin.service.NodeService;
+import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +27,7 @@ import java.util.stream.Collectors;
 public class NodeServiceImpl implements NodeService {
     private final NodeRepository nodeRepository;
     private final DescriptionRepository descriptionRepository;
+    private final ParamRepository paramRepository;
 
     @Override
     public void deleteNode(Long id) {
@@ -26,8 +35,64 @@ public class NodeServiceImpl implements NodeService {
     }
 
     @Override
-    public List<Node> getDevicesBySiteAndProject(String site, String project) {
-        return nodeRepository.findDevicesBySiteAndProject(site, project);
+    @Transactional
+    public void deleteNodeByIdNode(String idNode) {
+        nodeRepository.deleteNodeByIdNode(idNode);
+    }
+
+
+    @Override
+    public CreateNodeResponse createNode(CreateNodeDTO createNodeDTO) {
+        CreateNodeResponse response = new CreateNodeResponse();
+        validateNodeType(createNodeDTO.getType());
+
+        Node node = new Node();
+        node.setNodeType(createNodeDTO.getType());
+        node.setIdNode("temp");
+        node.setName(createNodeDTO.getName());
+        node.setParentId(createNodeDTO.getParentId());
+
+        Node savedNode = nodeRepository.save(node);
+        savedNode.updateIdNode();
+        boolean isParent = "cha".equals(createNodeDTO.getType());
+        response.setNodeDTO(convertToDto(savedNode, isParent));
+
+        List<Long> paramIds = NodeTemplates.getTemplateParams(createNodeDTO.getType());
+        List<Description> descriptions = descriptionRepository.findAll();
+        if (paramIds != null) {
+            for (Long paramId : paramIds) {
+                NodeParam nodeParam = new NodeParam();
+                nodeParam.setIdType(paramId);
+                nodeParam.setNode(savedNode);
+                nodeParam.setValue("");
+                NodeParam savedParam = paramRepository.save(nodeParam);
+
+                ParamDTO dto = new ParamDTO();
+                dto.setId(savedParam.getId());
+                dto.setIdNode(savedParam.getNode().getIdNode());
+                dto.setName(descriptions.get(savedParam.getIdType().intValue()-1).getName());
+                dto.setType(descriptions.get(savedParam.getIdType().intValue()-1).getType());
+                dto.setValue(savedParam.getValue());
+
+                response.getParams().add(dto);
+            }
+        }
+
+        return response;
+    }
+
+    private void validateNodeType(String type) {
+        if (!List.of("dev", "sub", "cha").contains(type)) {
+            throw new IllegalArgumentException("Node type must be 'dev', 'sub' or 'cha'");
+        }
+    }
+    private NodeDTO convertToDto(Node node, Boolean isParent) {
+        NodeDTO dto = new NodeDTO();
+        dto.setIdNode(node.getIdNode());
+        dto.setName(node.getName());
+        dto.setIsParent(isParent);
+        dto.setParentId(node.getParentId());
+        return dto;
     }
 
     @Override
@@ -49,20 +114,17 @@ public class NodeServiceImpl implements NodeService {
         nodesIds.addAll(deviceIds);
         nodesIds.addAll(subtypeIds);
         nodesIds.addAll(channelsIds);
-        List<NodeParam> allParams = nodeRepository.findParamsByNodeIds(nodesIds);
+        List<NodeParam> allParams = paramRepository.findParamsByNodeIds(nodesIds);
         allParams.forEach(param -> {
            ParamDTO dto = new ParamDTO();
            dto.setId(param.getId());
            dto.setIdNode(param.getNode().getIdNode());
-           dto.setName(descriptions.get(param.getIdType().intValue()).getName());
-           dto.setType(descriptions.get(param.getIdType().intValue()).getType());
+           dto.setName(descriptions.get(param.getIdType().intValue()-1).getName());
+           dto.setType(descriptions.get(param.getIdType().intValue()-1).getType());
            dto.setValue(param.getValue());
 
            response.getParams().add(dto);
         });
-//        allParams.stream().forEach(param -> response.getParams()
-//                .add(new ParamDTO(param.getIdType(),param.getNode().getIdNode(), param.getValue())));
-
 
         List<Node> nodes = new ArrayList<>();
         nodes.addAll(devices);
@@ -70,7 +132,6 @@ public class NodeServiceImpl implements NodeService {
         nodes.addAll(channels);
         nodes.forEach(node ->{
             NodeDTO dto = new NodeDTO();
-//            dto.setId(node.getId());
             dto.setIdNode(node.getIdNode());
             dto.setName(node.getName());
             dto.setParentId(node.getParentId());
@@ -83,4 +144,6 @@ public class NodeServiceImpl implements NodeService {
         });
         return response;
     }
+
+
 }

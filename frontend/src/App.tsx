@@ -3,7 +3,7 @@ import DeviceTreePanel from "./components/DeviceTreePanel/DeviceTreePanel.tsx";
 import MainLayout from "./layout/MainLayout/MainLayout.tsx";
 import HeaderBar from "./components/HeaderBar/HeaderBar.tsx";
 import StartMenu from "./components/StartMenu/StartMenu.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import type {TreeProps} from "rc-tree";
 import DeviceParams from "./components/DeviceParams/DeviceParams.tsx";
 import type {DeviceNodeType, DeviceParamsType} from "./types/nodeType.ts";
@@ -37,16 +37,14 @@ function App() {
       if (confirm) {
         const form = document.querySelector<HTMLFormElement>('form.params');
         if (form) {
-          await applyChangesParams(form, deviceParams, setIsDirty);
+          await applyChangesParams(form, deviceParams, setIsDirty, setInitialDeviceParams);
         }
-        setSelectedDeviceKey(newKey);
         setIsDirty(false);
       } else {
         setIsDirty(false);
-        setSelectedDeviceKey(newKey);
       }
     }
-
+    setSelectedDeviceKey(newKey);
     setDeviceParams(initialDeviceParams.filter(param => param.parentKey === selectedKeys[0]));
     setVisibleDeviceParams(true);
   };
@@ -62,7 +60,9 @@ function App() {
       node: info.node,
     });
   };
-
+  useEffect(() => {
+    console.log(initialDeviceParams);
+  }, [initialDeviceParams]);
   return (
     <>
       <HeaderBar />
@@ -75,6 +75,7 @@ function App() {
       {visibleTree &&
           <MainLayout>
             <DeviceTreePanel
+                setInitialDeviceParams={setInitialDeviceParams}
                 treeData={treeData}
                 handleSelect={handleSelect}
                 handleRightClick={handleRightClick}
@@ -87,7 +88,10 @@ function App() {
                   isDirty={isDirty}
                   setIsDirty={setIsDirty}
                   deviceParams={deviceParams}
-                />}
+                  setInitialDeviceParams={setInitialDeviceParams}
+                  nodeType={selectedDeviceKey ?? ""}
+                />
+            }
           </MainLayout>}
     </>
   )

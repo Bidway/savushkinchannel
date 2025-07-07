@@ -17,13 +17,12 @@ const StartMenu = ({setTreeData, setInitialDeviceParams, setVisibleTree}) => {
       project: form.projectInput.value
     };
     try {
-      const response = await axios.get('http://localhost:8080/api/nodes/search', {
+      const response = await axios.get('http://localhost:8080/api/node/all', {
         params: {
           site: formData.site,
           project: formData.project
         }
       });
-      console.log('Ответ сервера:', response.data);
       setTreeData(response.data.nodes);
       setInitialDeviceParams(response.data.params);
       setVisibleTree(true);

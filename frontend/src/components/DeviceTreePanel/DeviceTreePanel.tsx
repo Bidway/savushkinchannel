@@ -4,7 +4,7 @@ import type {DataNode} from 'rc-tree/es/interface';
 import 'rc-tree/assets/index.css';
 import * as React from "react";
 import './DeviceTreePanel.scss';
-import type {DeviceNodeType} from "../../types/nodeType.ts";
+import type {DeviceNodeType, DeviceParamsType} from "../../types/nodeType.ts";
 import type {ContextMenuState} from "../../types/ContextMenuState.ts";
 import type {EventDataNode} from "rc-tree/lib/interface";
 import {handleMenuAction} from "../../utils/handleMenuAction.ts";
@@ -16,16 +16,22 @@ interface DeviceTreePanelProps {
   handleRightClick: (info: { event: React.MouseEvent; node: EventDataNode<DataNode> }) => void;
   contextMenu: ContextMenuState;
   setContextMenu: React.Dispatch<React.SetStateAction<ContextMenuState>>;
-  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>
+  setTreeData: React.Dispatch<React.SetStateAction<DeviceNodeType[]>>;
+  setInitialDeviceParams: React.Dispatch<React.SetStateAction<DeviceParamsType[]>>
 }
 
-const isSubtypeNode = (node: DeviceNodeType): boolean => {
-  // по ключу или названию — настраивай под себя
-  return node.key.startsWith('sub');
+const isSubtypeNode = (node: DataNode): boolean => {
+  return node.key.toString().startsWith('sub');
 };
 
 
-const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect, handleRightClick, contextMenu, setContextMenu, setTreeData}) => {
+const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({
+    treeData,
+    handleSelect,
+    handleRightClick,
+    contextMenu, setContextMenu, setTreeData, setInitialDeviceParams
+
+}) => {
   const nestedTreeData = useMemo(() => {
     const nodeMap = new Map<string, DataNode>();
     treeData.forEach((node) => {
@@ -75,6 +81,7 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
         defaultExpandAll={false}
         onSelect={handleSelect}
         onRightClick={handleRightClick}
+        className={"device-tree-panel"}
       />
 
       {/* Контекстное меню */}
@@ -96,20 +103,20 @@ const DeviceTreePanel: React.FC<DeviceTreePanelProps> = ({treeData, handleSelect
           }}
         >
           {/* Удалить — всегда */}
-          <li onClick={() => handleMenuAction('Удалить', contextMenu, setContextMenu, setTreeData)}>
+          <li onClick={() => handleMenuAction('Удалить', contextMenu, setContextMenu, setTreeData, setInitialDeviceParams)}>
             🗑️ Удалить
           </li>
 
           {/* Добавить подтип — если node может иметь детей */}
           {!contextMenu.node.isLeaf && !isSubtypeNode(contextMenu.node) && (
-            <li onClick={() => handleMenuAction('Добавить подтип', contextMenu, setContextMenu, setTreeData)}>
+            <li onClick={() => handleMenuAction('Добавить подтип', contextMenu, setContextMenu, setTreeData, setInitialDeviceParams)}>
               ➕ Добавить подтип
             </li>
           )}
 
           {/* Добавить канал — если node это подтип */}
           {isSubtypeNode(contextMenu.node) && (
-            <li onClick={() => handleMenuAction('Добавить канал', contextMenu, setContextMenu, setTreeData)}>
+            <li onClick={() => handleMenuAction('Добавить канал', contextMenu, setContextMenu, setTreeData, setInitialDeviceParams)}>
               ➕ Добавить канал
             </li>
           )}
