@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  java_app:
+    container_name: backend
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://host.docker.internal:5432/savushkin
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+    networks:
+      - live_network
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - java_app
+    networks:
+      - live_network
+
+networks:
+  live_network:
+    driver: bridge

@@ -10,6 +10,7 @@ import com.example.savushkin.repository.DescriptionRepository;
 import com.example.savushkin.repository.NodeRepository;
 import com.example.savushkin.repository.ParamRepository;
 import com.example.savushkin.service.ParamService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class ParamServiceImpl implements ParamService {
     private final NodeRepository nodeRepository;
 
     @Override
+    @Transactional
     public void deleteParamById(Long id) {
         paramRepository.deleteById(id);
     }
